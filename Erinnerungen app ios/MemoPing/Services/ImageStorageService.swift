@@ -15,10 +15,16 @@ enum ImageStorageError: LocalizedError {
 }
 
 final class ImageStorageService {
+    static let shared = ImageStorageService()
+
     private let folderName = "MemoPingImages"
 
-    func save(_ image: UIImage) throws -> String {
-        guard let data = image.jpegData(compressionQuality: 0.86) ?? image.pngData() else {
+    private init() {}
+
+    func saveImage(_ image: UIImage, compressionQuality: CGFloat = 0.86) throws -> String {
+        let preparedImage = image.resizedForMemoStorage(maxPixelDimension: 2_000)
+
+        guard let data = preparedImage.jpegData(compressionQuality: compressionQuality) else {
             throw ImageStorageError.cannotCreateData
         }
 
@@ -28,7 +34,7 @@ final class ImageStorageService {
         return fileName
     }
 
-    func load(fileName: String) -> UIImage? {
+    func loadImage(fileName: String) -> UIImage? {
         guard let directory = try? imageDirectory() else {
             return nil
         }
@@ -36,7 +42,7 @@ final class ImageStorageService {
         return UIImage(contentsOfFile: directory.appendingPathComponent(fileName).path)
     }
 
-    func delete(fileName: String) {
+    func deleteImage(fileName: String) {
         guard let directory = try? imageDirectory() else {
             return
         }
@@ -44,8 +50,8 @@ final class ImageStorageService {
         try? FileManager.default.removeItem(at: directory.appendingPathComponent(fileName))
     }
 
-    func delete(fileNames: [String]) {
-        fileNames.forEach(delete(fileName:))
+    func deleteImages(fileNames: [String]) {
+        fileNames.forEach(deleteImage(fileName:))
     }
 
     private func imageDirectory() throws -> URL {
@@ -63,5 +69,42 @@ final class ImageStorageService {
         }
 
         return directory
+    }
+}
+
+extension ImageStorageService {
+    func save(_ image: UIImage) throws -> String {
+        try saveImage(image)
+    }
+
+    func load(fileName: String) -> UIImage? {
+        loadImage(fileName: fileName)
+    }
+
+    func delete(fileName: String) {
+        deleteImage(fileName: fileName)
+    }
+
+    func delete(fileNames: [String]) {
+        deleteImages(fileNames: fileNames)
+    }
+}
+
+private extension UIImage {
+    func resizedForMemoStorage(maxPixelDimension: CGFloat) -> UIImage {
+        let longestSide = max(size.width, size.height)
+
+        guard longestSide > maxPixelDimension else {
+            return self
+        }
+
+        let scale = maxPixelDimension / longestSide
+        let targetSize = CGSize(width: size.width * scale, height: size.height * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+
+        return UIGraphicsImageRenderer(size: targetSize, format: format).image { _ in
+            draw(in: CGRect(origin: .zero, size: targetSize))
+        }
     }
 }

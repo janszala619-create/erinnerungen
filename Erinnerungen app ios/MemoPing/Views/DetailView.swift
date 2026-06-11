@@ -1,5 +1,13 @@
 import SwiftData
 import SwiftUI
+import UIKit
+
+private struct DetailImage: Identifiable {
+    let fileName: String
+    let image: UIImage
+
+    var id: String { fileName }
+}
 
 struct DetailView: View {
     @Environment(\.modelContext) private var modelContext
@@ -10,8 +18,10 @@ struct DetailView: View {
 
     @State private var isEditing = false
     @State private var errorMessage: String?
+    @State private var selectedImage: DetailImage?
+    @State private var showDeleteConfirmation = false
 
-    private let imageStorage = ImageStorageService()
+    private let imageStorage = ImageStorageService.shared
 
     var body: some View {
         ScrollView {
@@ -26,6 +36,7 @@ struct DetailView: View {
             }
             .padding()
         }
+        .background(Color(.systemGroupedBackground))
         .navigationTitle("Details")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -41,6 +52,26 @@ struct DetailView: View {
             }
         } message: {
             Text(errorMessage ?? "")
+        }
+        .confirmationDialog("Memo wirklich löschen?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Löschen", role: .destructive) {
+                deleteMemo()
+            }
+            Button("Abbrechen", role: .cancel) {}
+        }
+        .sheet(item: $selectedImage) { detailImage in
+            NavigationStack {
+                imageDetailView(detailImage)
+                    .navigationTitle("Bild")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Schließen") {
+                                selectedImage = nil
+                            }
+                        }
+                    }
+            }
         }
     }
 
@@ -105,7 +136,10 @@ struct DetailView: View {
                         )
                     }
                 } else if item.hasReminder, let reminderDate = item.reminderDate {
-                    Label(reminderDate.formatted(date: .abbreviated, time: .shortened), systemImage: "bell")
+                    Label("Erinnerung aktiv", systemImage: "bell.fill")
+                        .foregroundStyle(.green)
+
+                    Text(reminderDate.formatted(date: .abbreviated, time: .shortened))
                         .foregroundStyle(.secondary)
                 } else {
                     Label("Keine Erinnerung", systemImage: "bell.slash")
@@ -134,12 +168,22 @@ struct DetailView: View {
 
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 12)], spacing: 12) {
                     ForEach(item.imageFileNames, id: \.self) { fileName in
-                        if let image = imageStorage.load(fileName: fileName) {
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(height: 150)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        if let image = imageStorage.loadImage(fileName: fileName) {
+                            Button {
+                                selectedImage = DetailImage(fileName: fileName, image: image)
+                            } label: {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(height: 150)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Bild öffnen")
+                        } else {
+                            Label("Bilddatei nicht gefunden", systemImage: "photo.badge.exclamationmark")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -157,8 +201,10 @@ struct DetailView: View {
 
             if !item.detectedURLs.isEmpty {
                 detectedValues(title: "Links", systemImage: "link", values: item.detectedURLs) { value in
-                    if let url = URL(string: value) {
+                    if let url = webURL(from: value) {
                         openURL(url)
+                    } else {
+                        errorMessage = "Dieser Link kann nicht geöffnet werden."
                     }
                 }
             }
@@ -175,21 +221,38 @@ struct DetailView: View {
 
     private var actionSection: some View {
         VStack(spacing: 12) {
-            Button {
-                toggleCompleted()
-            } label: {
-                Label(item.isCompleted ? "Als offen markieren" : "Als erledigt markieren", systemImage: item.isCompleted ? "circle" : "checkmark.circle")
-                    .frame(maxWidth: .infinity)
+            if item.hasReminder {
+                Button {
+                    removeReminder()
+                } label: {
+                    Label("Erinnerung entfernen", systemImage: "bell.slash")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
             }
-            .buttonStyle(.bordered)
+
+            if item.isCompleted {
+                Label("Erledigt", systemImage: "checkmark.circle.fill")
+                    .foregroundStyle(.green)
+                    .frame(maxWidth: .infinity)
+            } else {
+                Button {
+                    markCompleted()
+                } label: {
+                    Label("Als erledigt markieren", systemImage: "checkmark.circle")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+            }
 
             Button(role: .destructive) {
-                deleteMemo()
+                showDeleteConfirmation = true
             } label: {
                 Label("Löschen", systemImage: "trash")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.bordered)
+            .accessibilityLabel("Memo löschen")
         }
     }
 
@@ -307,17 +370,31 @@ struct DetailView: View {
         }
     }
 
+    private func imageDetailView(_ detailImage: DetailImage) -> some View {
+        ScrollView {
+            Image(uiImage: detailImage.image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: .infinity)
+                .padding()
+        }
+        .background(Color(.systemBackground))
+    }
+
     private func saveChanges() {
+        if item.title.trimmed.isEmpty {
+            item.title = "Ohne Titel"
+        }
+
         item.updatedAt = Date()
+        updateDetectedInfo()
 
         Task { @MainActor in
             do {
-                let notificationService = NotificationService()
-
                 if item.isCompleted || !item.hasReminder {
-                    notificationService.removeNotification(for: item)
+                    NotificationService.shared.cancelReminder(for: item)
                 } else {
-                    try await notificationService.scheduleNotification(for: item)
+                    try await NotificationService.shared.scheduleReminder(for: item)
                 }
 
                 try modelContext.save()
@@ -328,8 +405,23 @@ struct DetailView: View {
         }
     }
 
-    private func toggleCompleted() {
-        completedBinding.wrappedValue = !item.isCompleted
+    private func removeReminder() {
+        item.hasReminder = false
+        item.reminderDate = nil
+        item.updatedAt = Date()
+        NotificationService.shared.cancelReminder(for: item)
+
+        do {
+            try modelContext.save()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    private func markCompleted() {
+        item.isCompleted = true
+        item.updatedAt = Date()
+        NotificationService.shared.cancelReminder(for: item)
 
         do {
             try modelContext.save()
@@ -340,13 +432,11 @@ struct DetailView: View {
 
     private func handleCompletionNotification() {
         Task { @MainActor in
-            let notificationService = NotificationService()
-
             if item.isCompleted {
-                notificationService.removeNotification(for: item)
+                NotificationService.shared.cancelReminder(for: item)
             } else if item.hasReminder {
                 do {
-                    try await notificationService.scheduleNotification(for: item)
+                    try await NotificationService.shared.scheduleReminder(for: item)
                 } catch {
                     errorMessage = error.localizedDescription
                 }
@@ -356,9 +446,8 @@ struct DetailView: View {
 
     private func deleteMemo() {
         Task { @MainActor in
-            let notificationService = NotificationService()
-            notificationService.removeNotification(for: item)
-            imageStorage.delete(fileNames: item.imageFileNames)
+            NotificationService.shared.cancelReminder(for: item)
+            imageStorage.deleteImages(fileNames: item.imageFileNames)
             modelContext.delete(item)
 
             do {
@@ -374,6 +463,29 @@ struct DetailView: View {
         let digits = phoneNumber.filter { $0.isNumber || $0 == "+" }
         if let url = URL(string: "tel://\(digits)") {
             openURL(url)
+        } else {
+            errorMessage = "Diese Telefonnummer kann nicht geöffnet werden."
         }
+    }
+
+    private func webURL(from value: String) -> URL? {
+        let trimmedValue = value.trimmed
+        guard !trimmedValue.isEmpty else {
+            return nil
+        }
+
+        if let url = URL(string: trimmedValue), url.scheme != nil {
+            return url
+        }
+
+        return URL(string: "https://\(trimmedValue)")
+    }
+
+    private func updateDetectedInfo() {
+        let info = DataDetectionService.shared.detect(in: [item.bodyText, item.recognizedText].joined(separator: "\n"))
+        item.detectedPhoneNumbers = info.phoneNumbers
+        item.detectedURLs = info.urls
+        item.detectedAddresses = info.addresses
+        item.detectedDateStrings = info.formattedDates()
     }
 }

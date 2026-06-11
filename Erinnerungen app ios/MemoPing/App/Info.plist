@@ -21,13 +21,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>MemoPing benötigt die Kamera, damit du Fotos privat zu deinen Notizen hinzufügen kannst.</string>
+	<string>MemoPing benötigt Zugriff auf die Kamera, damit du Fotos zu deinen Notizen und Erinnerungen hinzufügen kannst.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>MemoPing nutzt das Mikrofon, um gesprochene Notizen lokal als Text zu erfassen.</string>
+	<string>MemoPing benötigt Zugriff auf das Mikrofon, damit du Notizen und Erinnerungen per Sprache erfassen kannst.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>MemoPing benötigt Zugriff auf ausgewählte Fotos, damit du Bilder zu lokalen Notizen hinzufügen kannst.</string>
+	<string>MemoPing benötigt Zugriff auf deine Fotos, damit du Bilder zu deinen Memos hinzufügen kannst.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>MemoPing nutzt Spracherkennung, um deine gesprochenen Erinnerungen in bearbeitbaren Text umzuwandeln.</string>
+	<string>MemoPing benötigt Spracherkennung, um deine gesprochenen Notizen in Text umzuwandeln.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

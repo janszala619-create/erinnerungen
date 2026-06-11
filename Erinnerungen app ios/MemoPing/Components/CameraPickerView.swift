@@ -13,6 +13,8 @@ struct CameraPickerView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.sourceType = .camera
+        picker.mediaTypes = ["public.image"]
+        picker.cameraCaptureMode = .photo
         picker.allowsEditing = false
         picker.delegate = context.coordinator
         return picker

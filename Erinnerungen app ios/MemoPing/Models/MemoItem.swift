@@ -80,7 +80,7 @@ extension MemoItem {
     }
 
     var notificationIdentifier: String {
-        "memo-\(id.uuidString)"
+        id.uuidString
     }
 
     var previewText: String {

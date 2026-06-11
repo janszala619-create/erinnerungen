@@ -9,13 +9,13 @@ struct HomeView: View {
     @State private var isCapturePresented = false
     @State private var errorMessage: String?
 
-    private let imageStorage = ImageStorageService()
+    private let imageStorage = ImageStorageService.shared
 
     var body: some View {
         ZStack(alignment: .bottom) {
             content
                 .safeAreaInset(edge: .bottom) {
-                    Color.clear.frame(height: 92)
+                    Color.clear.frame(height: 104)
                 }
 
             CaptureButton {
@@ -25,6 +25,7 @@ struct HomeView: View {
         }
         .navigationTitle("MemoPing")
         .searchable(text: $viewModel.searchText, prompt: "Suchen")
+        .background(Color(.systemGroupedBackground))
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 categoryFilterMenu
@@ -48,11 +49,17 @@ struct HomeView: View {
     private var content: some View {
         let groups = viewModel.sectionGroups(from: items)
 
-        if groups.isEmpty {
+        if items.isEmpty {
             ContentUnavailableView(
-                "Noch keine Einträge",
-                systemImage: "tray",
-                description: Text("Tippe auf den Plus-Button, um eine Notiz, Erinnerung oder Bildnotiz zu erfassen.")
+                "Noch keine Memos",
+                systemImage: "sparkles",
+                description: Text("Tippe auf den großen Button, um deine erste Notiz oder Erinnerung zu erfassen.")
+            )
+        } else if groups.isEmpty {
+            ContentUnavailableView(
+                "Keine Ergebnisse gefunden.",
+                systemImage: "magnifyingglass",
+                description: Text("Versuche einen anderen Suchbegriff oder entferne den Filter.")
             )
         } else {
             List {
@@ -64,6 +71,9 @@ struct HomeView: View {
                             } label: {
                                 MemoCardView(item: item)
                             }
+                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                             .swipeActions(edge: .leading, allowsFullSwipe: true) {
                                 Button {
                                     toggleCompleted(item)
@@ -86,7 +96,10 @@ struct HomeView: View {
                     }
                 }
             }
-            .listStyle(.insetGrouped)
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .animation(.snappy(duration: 0.2), value: viewModel.searchText)
+            .animation(.snappy(duration: 0.2), value: viewModel.selectedCategory)
         }
     }
 
@@ -123,20 +136,21 @@ struct HomeView: View {
     }
 
     private func toggleCompleted(_ item: MemoItem) {
+        let previousCompletionState = item.isCompleted
         item.isCompleted.toggle()
         item.updatedAt = Date()
 
         Task { @MainActor in
             do {
-                let notificationService = NotificationService()
-
                 if item.isCompleted {
-                    notificationService.removeNotification(for: item)
+                    NotificationService.shared.cancelReminder(for: item)
                 } else if item.hasReminder {
-                    try await notificationService.scheduleNotification(for: item)
+                    try await NotificationService.shared.scheduleReminder(for: item)
                 }
                 try modelContext.save()
             } catch {
+                item.isCompleted = previousCompletionState
+                item.updatedAt = Date()
                 errorMessage = error.localizedDescription
             }
         }
@@ -144,9 +158,8 @@ struct HomeView: View {
 
     private func delete(_ item: MemoItem) {
         Task { @MainActor in
-            let notificationService = NotificationService()
-            notificationService.removeNotification(for: item)
-            imageStorage.delete(fileNames: item.imageFileNames)
+            NotificationService.shared.cancelReminder(for: item)
+            imageStorage.deleteImages(fileNames: item.imageFileNames)
             modelContext.delete(item)
 
             do {

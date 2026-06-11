@@ -89,7 +89,8 @@ final class HomeViewModel: ObservableObject {
                 item.priority.displayName,
                 item.detectedPhoneNumbers.joined(separator: " "),
                 item.detectedURLs.joined(separator: " "),
-                item.detectedAddresses.joined(separator: " ")
+                item.detectedAddresses.joined(separator: " "),
+                item.detectedDateStrings.joined(separator: " ")
             ].joined(separator: " ").lowercased()
 
             return searchableText.contains(normalizedSearch)

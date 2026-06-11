@@ -4,13 +4,20 @@ struct PriorityPickerView: View {
     @Binding var selection: MemoPriority
 
     var body: some View {
-        Picker("Priorität", selection: $selection) {
-            ForEach(MemoPriority.allCases) { priority in
-                Label(priority.displayName, systemImage: priority.systemImage)
-                    .tag(priority)
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Priorität", systemImage: selection.systemImage)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(selection.tint)
+
+            Picker("Priorität", selection: $selection) {
+                ForEach(MemoPriority.allCases) { priority in
+                    Text(priority.displayName)
+                        .tag(priority)
+                }
             }
+            .pickerStyle(.segmented)
         }
-        .pickerStyle(.segmented)
+        .accessibilityLabel("Priorität auswählen")
     }
 }
 

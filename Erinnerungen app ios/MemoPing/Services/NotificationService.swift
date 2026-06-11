@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 import UserNotifications
 
@@ -6,6 +5,7 @@ enum NotificationServiceError: LocalizedError {
     case permissionDenied
     case missingReminderDate
     case dateInPast
+    case schedulingFailed(String)
 
     var errorDescription: String? {
         switch self {
@@ -15,30 +15,31 @@ enum NotificationServiceError: LocalizedError {
             return "Bitte wähle ein Datum und eine Uhrzeit für die Erinnerung."
         case .dateInPast:
             return "Der Erinnerungstermin muss in der Zukunft liegen."
+        case .schedulingFailed(let message):
+            return "Die Erinnerung konnte nicht geplant werden: \(message)"
         }
     }
 }
 
-@MainActor
-final class NotificationService: ObservableObject {
-    @Published private(set) var authorizationStatus: UNAuthorizationStatus = .notDetermined
+final class NotificationService {
+    static let shared = NotificationService()
 
     private let center = UNUserNotificationCenter.current()
 
-    func refreshAuthorizationStatus() async {
-        let settings = await center.notificationSettings()
-        authorizationStatus = settings.authorizationStatus
-    }
+    private init() {}
 
     func requestAuthorization() async throws -> Bool {
-        let granted = try await center.requestAuthorization(options: [.alert, .sound, .badge])
-        await refreshAuthorizationStatus()
-        return granted
+        try await center.requestAuthorization(options: [.alert, .sound, .badge])
     }
 
-    func scheduleNotification(for memo: MemoItem) async throws {
+    func getAuthorizationStatus() async -> UNAuthorizationStatus {
+        let settings = await center.notificationSettings()
+        return settings.authorizationStatus
+    }
+
+    func scheduleReminder(for memo: MemoItem) async throws {
         guard memo.hasReminder else {
-            removeNotification(for: memo)
+            cancelReminder(for: memo)
             return
         }
 
@@ -50,49 +51,80 @@ final class NotificationService: ObservableObject {
             throw NotificationServiceError.dateInPast
         }
 
-        if try await ensureAuthorization() == false {
+        guard try await ensureAuthorization() else {
             throw NotificationServiceError.permissionDenied
         }
 
         let content = UNMutableNotificationContent()
-        content.title = memo.title
-        content.body = memo.previewText
+        content.title = memo.title.trimmed.isEmpty ? "MemoPing" : memo.title
+        content.body = notificationBody(for: memo)
         content.sound = .default
+        content.userInfo = ["memoID": memo.id.uuidString]
 
         let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: reminderDate)
         let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
-        let request = UNNotificationRequest(identifier: memo.notificationIdentifier, content: content, trigger: trigger)
+        let request = UNNotificationRequest(identifier: memo.id.uuidString, content: content, trigger: trigger)
 
-        removeNotification(for: memo)
+        cancelReminder(for: memo)
+        do {
+            try await center.add(request)
+        } catch {
+            throw NotificationServiceError.schedulingFailed(error.localizedDescription)
+        }
+    }
+
+    func cancelReminder(for memo: MemoItem) {
+        cancelReminder(with: memo.id)
+    }
+
+    func cancelReminder(with id: UUID) {
+        let identifier = id.uuidString
+        center.removePendingNotificationRequests(withIdentifiers: [identifier])
+        center.removeDeliveredNotifications(withIdentifiers: [identifier])
+    }
+
+    #if DEBUG
+    func scheduleDebugReminder() async throws {
+        guard try await ensureAuthorization() else {
+            throw NotificationServiceError.permissionDenied
+        }
+
+        let content = UNMutableNotificationContent()
+        content.title = "MemoPing Test"
+        content.body = "Diese Test-Erinnerung wurde lokal in 10 Sekunden geplant."
+        content.sound = .default
+        content.userInfo = ["debug": true]
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 10, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: "debug-\(UUID().uuidString)",
+            content: content,
+            trigger: trigger
+        )
+
         try await center.add(request)
     }
+    #endif
 
-    func removeNotification(for memo: MemoItem) {
-        center.removePendingNotificationRequests(withIdentifiers: [memo.notificationIdentifier])
-        center.removeDeliveredNotifications(withIdentifiers: [memo.notificationIdentifier])
-    }
-
-    var statusText: String {
-        switch authorizationStatus {
+    static func statusText(for status: UNAuthorizationStatus) -> String {
+        switch status {
         case .authorized:
             return "Erlaubt"
         case .denied:
-            return "Abgelehnt"
+            return "Nicht erlaubt"
         case .notDetermined:
             return "Noch nicht gefragt"
-        case .provisional:
-            return "Vorläufig erlaubt"
-        case .ephemeral:
-            return "Temporär erlaubt"
+        case .provisional, .ephemeral:
+            return "Eingeschränkt / unbekannt"
         @unknown default:
-            return "Unbekannt"
+            return "Eingeschränkt / unbekannt"
         }
     }
 
     private func ensureAuthorization() async throws -> Bool {
-        await refreshAuthorizationStatus()
+        let status = await getAuthorizationStatus()
 
-        switch authorizationStatus {
+        switch status {
         case .authorized, .provisional, .ephemeral:
             return true
         case .notDetermined:
@@ -102,5 +134,16 @@ final class NotificationService: ObservableObject {
         @unknown default:
             return false
         }
+    }
+
+    private func notificationBody(for memo: MemoItem) -> String {
+        let text = memo.previewText.trimmed.isEmpty ? "Erinnerung aus MemoPing" : memo.previewText.trimmed
+
+        guard text.count > 120 else {
+            return text
+        }
+
+        let endIndex = text.index(text.startIndex, offsetBy: 120)
+        return String(text[..<endIndex]) + "..."
     }
 }

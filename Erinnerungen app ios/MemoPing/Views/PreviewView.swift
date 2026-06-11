@@ -1,3 +1,4 @@
+import AVFoundation
 import PhotosUI
 import SwiftData
 import SwiftUI
@@ -7,7 +8,7 @@ struct PreviewView: View {
     @Environment(\.modelContext) private var modelContext
 
     @StateObject private var viewModel: PreviewViewModel
-    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedPhotoItems: [PhotosPickerItem] = []
     @State private var cameraSheet: CameraSheet?
     @State private var showDiscardConfirmation = false
 
@@ -23,18 +24,28 @@ struct PreviewView: View {
     var body: some View {
         Form {
             contentSection
-            photoQuestionSection
             reminderSection
-            organizationSection
-            detectedInfoSection
+            photoQuestionSection
             imagesSection
+            detectedInfoSection
+            organizationSection
             saveSection
         }
         .scrollDismissesKeyboard(.interactively)
-        .onChange(of: selectedPhotoItem) { _, newItem in
+        .onChange(of: selectedPhotoItems) { _, newItems in
             Task {
-                await loadSelectedPhoto(newItem)
+                await loadSelectedPhotos(newItems)
             }
+        }
+        .onChange(of: viewModel.bodyText) { _, _ in
+            viewModel.textContentDidChange()
+        }
+        .onChange(of: viewModel.recognizedText) { _, _ in
+            viewModel.textContentDidChange()
+        }
+        .task {
+            await viewModel.refreshNotificationStatus()
+            await viewModel.prepareInitialImagesIfNeeded()
         }
         .sheet(item: $cameraSheet) { _ in
             CameraPickerView { image in
@@ -45,6 +56,7 @@ struct PreviewView: View {
         }
         .confirmationDialog("Entwurf verwerfen?", isPresented: $showDiscardConfirmation, titleVisibility: .visible) {
             Button("Verwerfen", role: .destructive) {
+                viewModel.discardTemporaryImages()
                 onDiscard()
             }
             Button("Abbrechen", role: .cancel) {}
@@ -92,16 +104,45 @@ struct PreviewView: View {
 
                 HStack(spacing: 10) {
                     Button {
-                        openCamera()
+                        Task {
+                            await openCamera()
+                        }
                     } label: {
                         Label("Foto aufnehmen", systemImage: "camera")
                     }
                     .buttonStyle(.bordered)
+                    .disabled(!viewModel.canAddMoreImages)
 
-                    PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                        Label("Aus Galerie wählen", systemImage: "photo")
+                    if viewModel.canAddMoreImages {
+                        PhotosPicker(
+                            selection: $selectedPhotoItems,
+                            maxSelectionCount: viewModel.remainingImageSlots,
+                            matching: .images
+                        ) {
+                            Label("Aus Galerie wählen", systemImage: "photo")
+                        }
+                        .buttonStyle(.bordered)
+                    } else {
+                        Button {
+                            viewModel.errorMessage = "Du kannst maximal 3 Bilder pro Memo hinzufügen."
+                        } label: {
+                            Label("Aus Galerie wählen", systemImage: "photo")
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(true)
                     }
-                    .buttonStyle(.bordered)
+                }
+
+                if let imageLimitMessage = viewModel.imageLimitMessage {
+                    Label(imageLimitMessage, systemImage: "info.circle")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if viewModel.imageAttachments.isEmpty {
+                    Label("Noch kein Foto hinzugefügt.", systemImage: "photo")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
 
                 Button {
@@ -119,8 +160,10 @@ struct PreviewView: View {
                 }
 
                 if viewModel.isProcessingImage {
-                    ProgressView("Bildtext wird erkannt")
+                    ProgressView("Bild wird vorbereitet")
                 }
+
+                ocrStatusView
             }
             .padding(.vertical, 4)
         }
@@ -154,6 +197,38 @@ struct PreviewView: View {
                     in: Date()...,
                     displayedComponents: [.date, .hourAndMinute]
                 )
+
+                if let reminderValidationMessage = viewModel.reminderValidationMessage {
+                    Label(reminderValidationMessage, systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Label("Benachrichtigungen", systemImage: "bell")
+                        Spacer()
+                        Text(viewModel.notificationStatusText)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if viewModel.notificationStatus != .authorized {
+                        Text("MemoPing plant Erinnerungen lokal auf diesem iPhone. Dafür müssen Benachrichtigungen erlaubt sein.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if viewModel.shouldShowNotificationPermissionButton {
+                        Button {
+                            Task {
+                                await viewModel.requestNotificationAuthorization()
+                            }
+                        } label: {
+                            Label("Benachrichtigungen erlauben", systemImage: "bell.badge")
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
             }
         }
     }
@@ -167,22 +242,26 @@ struct PreviewView: View {
 
     @ViewBuilder
     private var detectedInfoSection: some View {
-        if !viewModel.detectedInfo.isEmpty {
-            Section("Erkannte Daten") {
-                if !viewModel.detectedDateStrings.isEmpty {
-                    detectedRows(title: "Datum", systemImage: "calendar", values: viewModel.detectedDateStrings)
+        Section("Erkannte Informationen") {
+            if viewModel.detectedInfo.isEmpty {
+                Label("Noch keine erkannten Informationen.", systemImage: "text.magnifyingglass")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            } else {
+                if !viewModel.detectedDateSuggestions.isEmpty {
+                    detectedDateRows(viewModel.detectedDateSuggestions)
                 }
 
                 if !viewModel.detectedInfo.phoneNumbers.isEmpty {
-                    detectedRows(title: "Telefon", systemImage: "phone", values: viewModel.detectedInfo.phoneNumbers)
+                    editableDetectedRows(title: "Telefonnummern", systemImage: "phone", values: $viewModel.detectedInfo.phoneNumbers)
                 }
 
                 if !viewModel.detectedInfo.urls.isEmpty {
-                    detectedRows(title: "Links", systemImage: "link", values: viewModel.detectedInfo.urls.map(\.absoluteString))
+                    editableDetectedRows(title: "Links", systemImage: "link", values: $viewModel.detectedInfo.urls)
                 }
 
                 if !viewModel.detectedInfo.addresses.isEmpty {
-                    detectedRows(title: "Adressen", systemImage: "mappin.and.ellipse", values: viewModel.detectedInfo.addresses)
+                    editableDetectedRows(title: "Adressen", systemImage: "mappin.and.ellipse", values: $viewModel.detectedInfo.addresses)
                 }
             }
         }
@@ -190,16 +269,30 @@ struct PreviewView: View {
 
     @ViewBuilder
     private var imagesSection: some View {
-        if !viewModel.images.isEmpty {
+        if !viewModel.imageAttachments.isEmpty {
             Section("Bilder") {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
-                        ForEach(Array(viewModel.images.enumerated()), id: \.offset) { _, image in
-                            Image(uiImage: image)
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 112, height: 112)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        ForEach(viewModel.imageAttachments) { attachment in
+                            ZStack(alignment: .topTrailing) {
+                                Image(uiImage: attachment.image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 112, height: 112)
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+
+                                Button {
+                                    viewModel.removeImage(attachment)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.title3)
+                                        .symbolRenderingMode(.palette)
+                                        .foregroundStyle(.white, .black.opacity(0.65))
+                                }
+                                .buttonStyle(.plain)
+                                .padding(6)
+                                .accessibilityLabel("Bild entfernen")
+                            }
                         }
                     }
                     .padding(.vertical, 4)
@@ -211,22 +304,24 @@ struct PreviewView: View {
     private var saveSection: some View {
         Section {
             Button {
-                save(asReminder: false)
+                save(forceNormalNote: false)
             } label: {
-                Label("Als normale Notiz speichern", systemImage: "note.text")
+                Label(viewModel.hasReminder ? "Als Erinnerung speichern" : "Notiz speichern", systemImage: viewModel.hasReminder ? "bell" : "note.text")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(viewModel.isSaving)
+            .disabled(!viewModel.canSave)
 
-            Button {
-                save(asReminder: true)
-            } label: {
-                Label("Als Erinnerung speichern", systemImage: "bell")
-                    .frame(maxWidth: .infinity)
+            if viewModel.hasReminder {
+                Button {
+                    save(forceNormalNote: true)
+                } label: {
+                    Label("Ohne Erinnerung speichern", systemImage: "bell.slash")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .disabled(!viewModel.canSave)
             }
-            .buttonStyle(.bordered)
-            .disabled(!viewModel.canSaveReminder || viewModel.isSaving)
 
             Button(role: .destructive) {
                 showDiscardConfirmation = true
@@ -251,6 +346,97 @@ struct PreviewView: View {
         )
     }
 
+    @ViewBuilder
+    private var ocrStatusView: some View {
+        switch viewModel.ocrState {
+        case .idle:
+            EmptyView()
+        case .processing:
+            ProgressView("Text wird aus Bild erkannt...")
+                .font(.caption)
+        case .completed:
+            Label("Text aus Bild erkannt.", systemImage: "text.viewfinder")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        case .noTextFound:
+            Label("Kein Text im Bild erkannt.", systemImage: "text.badge.xmark")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        case .failed(let message):
+            Label(message, systemImage: "exclamationmark.triangle")
+                .font(.caption)
+                .foregroundStyle(.orange)
+        }
+    }
+
+    private func detectedDateRows(_ suggestions: [DetectedDateSuggestion]) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("Erkannte Termine", systemImage: "calendar")
+                .font(.subheadline.weight(.semibold))
+
+            ForEach(suggestions) { suggestion in
+                let index = suggestions.firstIndex(of: suggestion) ?? 0
+
+                VStack(alignment: .leading, spacing: 6) {
+                    TextField("Erkannter Termin", text: detectedDateStringBinding(at: index))
+                        .textInputAutocapitalization(.sentences)
+
+                    if suggestion.isFuture {
+                        Button {
+                            viewModel.useDetectedDate(suggestion.date)
+                        } label: {
+                            Label("Als Erinnerung verwenden", systemImage: "bell.badge")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+            }
+        }
+    }
+
+    private func editableDetectedRows(title: String, systemImage: String, values: Binding<[String]>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label(title, systemImage: systemImage)
+                .font(.subheadline.weight(.semibold))
+
+            ForEach(values.wrappedValue.indices, id: \.self) { index in
+                TextField(title, text: detectedStringBinding(values, at: index))
+                    .textInputAutocapitalization(.never)
+                    .keyboardType(title == "Telefonnummern" ? .phonePad : .default)
+            }
+        }
+    }
+
+    private func detectedDateStringBinding(at index: Int) -> Binding<String> {
+        Binding(
+            get: {
+                viewModel.detectedInfo.dateStrings[safe: index] ?? viewModel.detectedDateSuggestions[safe: index]?.displayText ?? ""
+            },
+            set: { newValue in
+                guard viewModel.detectedInfo.dateStrings.indices.contains(index) else {
+                    return
+                }
+
+                viewModel.detectedInfo.dateStrings[index] = newValue
+            }
+        )
+    }
+
+    private func detectedStringBinding(_ values: Binding<[String]>, at index: Int) -> Binding<String> {
+        Binding(
+            get: {
+                values.wrappedValue[safe: index] ?? ""
+            },
+            set: { newValue in
+                guard values.wrappedValue.indices.contains(index) else {
+                    return
+                }
+
+                values.wrappedValue[index] = newValue
+            }
+        )
+    }
+
     private func detectedRows(title: String, systemImage: String, values: [String]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Label(title, systemImage: systemImage)
@@ -265,40 +451,77 @@ struct PreviewView: View {
         }
     }
 
-    private func openCamera() {
+    private func openCamera() async {
+        guard viewModel.canAddMoreImages else {
+            viewModel.errorMessage = "Du kannst maximal 3 Bilder pro Memo hinzufügen."
+            return
+        }
+
         guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
-            viewModel.errorMessage = "Die Kamera ist auf diesem Gerät oder Simulator nicht verfügbar."
+            viewModel.errorMessage = "Kamera ist auf diesem Gerät nicht verfügbar."
+            return
+        }
+
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        if status == .notDetermined {
+            let granted = await AVCaptureDevice.requestAccess(for: .video)
+            guard granted else {
+                viewModel.errorMessage = "Die Kameraberechtigung wurde nicht erteilt."
+                return
+            }
+        } else if status == .denied || status == .restricted {
+            viewModel.errorMessage = "Die Kameraberechtigung wurde nicht erteilt."
             return
         }
 
         cameraSheet = CameraSheet()
     }
 
-    private func loadSelectedPhoto(_ item: PhotosPickerItem?) async {
-        guard let item else { return }
+    private func loadSelectedPhotos(_ items: [PhotosPickerItem]) async {
+        guard !items.isEmpty else { return }
 
-        do {
-            if let data = try await item.loadTransferable(type: Data.self),
-               let image = UIImage(data: data) {
-                await viewModel.addImage(image)
-            } else {
-                viewModel.errorMessage = "Das ausgewählte Bild konnte nicht geladen werden."
-            }
-        } catch {
-            viewModel.errorMessage = error.localizedDescription
+        guard viewModel.canAddMoreImages else {
+            viewModel.errorMessage = "Du kannst maximal 3 Bilder pro Memo hinzufügen."
+            selectedPhotoItems = []
+            return
         }
 
-        selectedPhotoItem = nil
+        let itemsToLoad = Array(items.prefix(viewModel.remainingImageSlots))
+
+        for item in itemsToLoad {
+            do {
+                if let data = try await item.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    await viewModel.addImage(image)
+                } else {
+                    viewModel.errorMessage = "Das ausgewählte Bild konnte nicht geladen werden."
+                }
+            } catch {
+                viewModel.errorMessage = "Das ausgewählte Bild konnte nicht geladen werden: \(error.localizedDescription)"
+            }
+        }
+
+        if items.count > itemsToLoad.count {
+            viewModel.errorMessage = "Es wurden nur die ersten \(itemsToLoad.count) Bilder übernommen. Maximal 3 Bilder pro Memo sind erlaubt."
+        }
+
+        selectedPhotoItems = []
     }
 
-    private func save(asReminder: Bool) {
+    private func save(forceNormalNote: Bool) {
         Task {
             do {
-                try await viewModel.save(asReminder: asReminder, modelContext: modelContext)
+                try await viewModel.save(modelContext: modelContext, forceNormalNote: forceNormalNote)
                 onSave()
             } catch {
                 viewModel.errorMessage = error.localizedDescription
             }
         }
+    }
+}
+
+private extension Array {
+    subscript(safe index: Index) -> Element? {
+        indices.contains(index) ? self[index] : nil
     }
 }
