@@ -1,4 +1,7 @@
+import AVFoundation
+import PhotosUI
 import SwiftUI
+import UIKit
 
 struct CaptureView: View {
     @Environment(\.dismiss) private var dismiss
@@ -6,6 +9,8 @@ struct CaptureView: View {
 
     @StateObject private var viewModel = CaptureViewModel()
     @State private var previewViewModel: PreviewViewModel?
+    @State private var selectedPhotoItems: [PhotosPickerItem] = []
+    @State private var cameraSheet: CameraSheet?
 
     let onComplete: () -> Void
 
@@ -45,6 +50,18 @@ struct CaptureView: View {
                 viewModel.stopRecording()
             }
         }
+        .onChange(of: selectedPhotoItems) { _, newItems in
+            Task {
+                await loadSelectedPhotos(newItems)
+            }
+        }
+        .sheet(item: $cameraSheet) { _ in
+            CameraPickerView { image in
+                Task {
+                    await viewModel.addImage(image)
+                }
+            }
+        }
         .onDisappear {
             previewViewModel?.discardTemporaryImages()
             viewModel.cancelRecording()
@@ -73,6 +90,8 @@ struct CaptureView: View {
                     Label("Text eingeben", systemImage: "keyboard")
                         .font(.headline)
                 }
+
+                imageInputSection
 
                 GroupBox {
                     VStack(spacing: 14) {
@@ -150,11 +169,152 @@ struct CaptureView: View {
         }
     }
 
+    private var imageInputSection: some View {
+        GroupBox {
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(spacing: 10) {
+                    Button {
+                        Task {
+                            await openCamera()
+                        }
+                    } label: {
+                        Label("Foto aufnehmen", systemImage: "camera")
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(!viewModel.canAddMoreImages)
+
+                    if viewModel.canAddMoreImages {
+                        PhotosPicker(
+                            selection: $selectedPhotoItems,
+                            maxSelectionCount: viewModel.remainingImageSlots,
+                            matching: .images
+                        ) {
+                            Label("Aus Galerie wählen", systemImage: "photo")
+                        }
+                        .buttonStyle(.bordered)
+                    } else {
+                        Button {
+                            viewModel.errorMessage = "Du kannst maximal 3 Bilder pro Memo hinzufügen."
+                        } label: {
+                            Label("Aus Galerie wählen", systemImage: "photo")
+                        }
+                        .buttonStyle(.bordered)
+                        .disabled(true)
+                    }
+                }
+
+                if let imageLimitMessage = viewModel.imageLimitMessage {
+                    Label(imageLimitMessage, systemImage: "info.circle")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                if viewModel.imageAttachments.isEmpty {
+                    Label("Du kannst auch direkt ein Foto oder einen Screenshot hinzufügen.", systemImage: "photo.on.rectangle")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(viewModel.imageAttachments) { attachment in
+                                ZStack(alignment: .topTrailing) {
+                                    Image(uiImage: attachment.image)
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: 92, height: 92)
+                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                                    Button {
+                                        viewModel.removeImage(attachment)
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .font(.title3)
+                                            .symbolRenderingMode(.palette)
+                                            .foregroundStyle(.white, .black.opacity(0.65))
+                                    }
+                                    .buttonStyle(.plain)
+                                    .padding(5)
+                                    .accessibilityLabel("Bild entfernen")
+                                }
+                            }
+                        }
+                        .padding(.vertical, 2)
+                    }
+                }
+
+                if viewModel.isProcessingImage {
+                    ProgressView("Bild wird erkannt...")
+                        .font(.caption)
+                }
+            }
+        } label: {
+            Label("Bild hinzufügen", systemImage: "photo")
+                .font(.headline)
+        }
+    }
+
     private var errorBinding: Binding<Bool> {
         Binding(
             get: { viewModel.errorMessage != nil },
             set: { if !$0 { viewModel.errorMessage = nil } }
         )
+    }
+
+    private func openCamera() async {
+        guard viewModel.canAddMoreImages else {
+            viewModel.errorMessage = "Du kannst maximal 3 Bilder pro Memo hinzufügen."
+            return
+        }
+
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            viewModel.errorMessage = "Kamera ist auf diesem Gerät nicht verfügbar."
+            return
+        }
+
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        if status == .notDetermined {
+            let granted = await AVCaptureDevice.requestAccess(for: .video)
+            guard granted else {
+                viewModel.errorMessage = "Die Kameraberechtigung wurde nicht erteilt."
+                return
+            }
+        } else if status == .denied || status == .restricted {
+            viewModel.errorMessage = "Die Kameraberechtigung wurde nicht erteilt."
+            return
+        }
+
+        cameraSheet = CameraSheet()
+    }
+
+    private func loadSelectedPhotos(_ items: [PhotosPickerItem]) async {
+        guard !items.isEmpty else { return }
+
+        guard viewModel.canAddMoreImages else {
+            viewModel.errorMessage = "Du kannst maximal 3 Bilder pro Memo hinzufügen."
+            selectedPhotoItems = []
+            return
+        }
+
+        let itemsToLoad = Array(items.prefix(viewModel.remainingImageSlots))
+
+        for item in itemsToLoad {
+            do {
+                if let data = try await item.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    await viewModel.addImage(image)
+                } else {
+                    viewModel.errorMessage = "Das ausgewählte Bild konnte nicht geladen werden."
+                }
+            } catch {
+                viewModel.errorMessage = "Das ausgewählte Bild konnte nicht geladen werden: \(error.localizedDescription)"
+            }
+        }
+
+        if items.count > itemsToLoad.count {
+            viewModel.errorMessage = "Es wurden nur die ersten \(itemsToLoad.count) Bilder übernommen. Maximal 3 Bilder pro Memo sind erlaubt."
+        }
+
+        selectedPhotoItems = []
     }
 
     private func openPreview() {

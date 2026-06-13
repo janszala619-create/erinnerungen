@@ -47,7 +47,7 @@ final class NotificationService {
             throw NotificationServiceError.missingReminderDate
         }
 
-        guard reminderDate > Date() else {
+        guard memo.reminderRepeatRule.isRepeating || reminderDate > Date() else {
             throw NotificationServiceError.dateInPast
         }
 
@@ -61,8 +61,11 @@ final class NotificationService {
         content.sound = .default
         content.userInfo = ["memoID": memo.id.uuidString]
 
-        let components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: reminderDate)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: false)
+        let trigger = calendarTrigger(for: memo, reminderDate: reminderDate)
+        guard trigger.nextTriggerDate() != nil else {
+            throw NotificationServiceError.schedulingFailed("Für diese Wiederholung konnte kein nächster Termin ermittelt werden.")
+        }
+
         let request = UNNotificationRequest(identifier: memo.id.uuidString, content: content, trigger: trigger)
 
         cancelReminder(for: memo)
@@ -145,5 +148,28 @@ final class NotificationService {
 
         let endIndex = text.index(text.startIndex, offsetBy: 120)
         return String(text[..<endIndex]) + "..."
+    }
+
+    private func calendarTrigger(for memo: MemoItem, reminderDate: Date) -> UNCalendarNotificationTrigger {
+        let calendar = Calendar.current
+        let components: DateComponents
+
+        switch memo.reminderRepeatRule {
+        case .none:
+            components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: reminderDate)
+        case .daily:
+            components = calendar.dateComponents([.hour, .minute], from: reminderDate)
+        case .weekly:
+            components = calendar.dateComponents([.weekday, .hour, .minute], from: reminderDate)
+        case .monthly:
+            components = calendar.dateComponents([.day, .hour, .minute], from: reminderDate)
+        case .yearly:
+            components = calendar.dateComponents([.month, .day, .hour, .minute], from: reminderDate)
+        }
+
+        return UNCalendarNotificationTrigger(
+            dateMatching: components,
+            repeats: memo.reminderRepeatRule.isRepeating
+        )
     }
 }

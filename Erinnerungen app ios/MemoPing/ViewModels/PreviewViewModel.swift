@@ -79,6 +79,7 @@ final class PreviewViewModel: ObservableObject {
     @Published var recognizedText: String
     @Published var reminderDate: Date?
     @Published var hasReminder = false
+    @Published var reminderRepeatRule: MemoReminderRepeatRule = .none
     @Published var category: MemoCategory?
     @Published var priority: MemoPriority = .normal
     @Published private(set) var imageAttachments: [PreviewImageAttachment] = []
@@ -306,6 +307,7 @@ final class PreviewViewModel: ObservableObject {
             recognizedText: recognizedText.trimmed,
             reminderDate: shouldScheduleReminder ? reminderDate : nil,
             hasReminder: shouldScheduleReminder,
+            reminderRepeatRule: shouldScheduleReminder ? reminderRepeatRule : .none,
             priority: priority,
             category: category,
             sourceType: sourceType,

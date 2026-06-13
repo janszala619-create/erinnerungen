@@ -132,14 +132,26 @@ struct DetailView: View {
                         DatePicker(
                             "Termin",
                             selection: reminderDateBinding,
+                            in: Date()...,
                             displayedComponents: [.date, .hourAndMinute]
                         )
+
+                        Picker("Wiederholen", selection: reminderRepeatBinding) {
+                            ForEach(MemoReminderRepeatRule.allCases) { repeatRule in
+                                Label(repeatRule.displayName, systemImage: repeatRule.systemImage)
+                                    .tag(repeatRule)
+                            }
+                        }
                     }
                 } else if item.hasReminder, let reminderDate = item.reminderDate {
                     Label("Erinnerung aktiv", systemImage: "bell.fill")
                         .foregroundStyle(.green)
 
                     Text(reminderDate.formatted(date: .abbreviated, time: .shortened))
+                        .foregroundStyle(.secondary)
+
+                    Label(item.reminderRepeatRule.displayName, systemImage: item.reminderRepeatRule.systemImage)
+                        .font(.subheadline)
                         .foregroundStyle(.secondary)
                 } else {
                     Label("Keine Erinnerung", systemImage: "bell.slash")
@@ -286,6 +298,10 @@ struct DetailView: View {
                 if isEnabled, item.reminderDate == nil {
                     item.reminderDate = Date().addingTimeInterval(3_600)
                 }
+
+                if !isEnabled {
+                    item.reminderRepeatRule = .none
+                }
             }
         )
     }
@@ -296,6 +312,16 @@ struct DetailView: View {
             set: {
                 item.reminderDate = $0
                 item.hasReminder = true
+                item.updatedAt = Date()
+            }
+        )
+    }
+
+    private var reminderRepeatBinding: Binding<MemoReminderRepeatRule> {
+        Binding(
+            get: { item.reminderRepeatRule },
+            set: {
+                item.reminderRepeatRule = $0
                 item.updatedAt = Date()
             }
         )
@@ -408,6 +434,7 @@ struct DetailView: View {
     private func removeReminder() {
         item.hasReminder = false
         item.reminderDate = nil
+        item.reminderRepeatRule = .none
         item.updatedAt = Date()
         NotificationService.shared.cancelReminder(for: item)
 

@@ -44,6 +44,10 @@ struct MemoCardView: View {
 
                 if item.hasReminder, let reminderDate = item.reminderDate {
                     memoBadge(reminderDate.formatted(date: .abbreviated, time: .shortened), systemImage: "bell", tint: .secondary)
+
+                    if item.reminderRepeatRule.isRepeating {
+                        memoBadge(item.reminderRepeatRule.displayName, systemImage: item.reminderRepeatRule.systemImage, tint: .secondary)
+                    }
                 }
 
                 if !item.detectedPhoneNumbers.isEmpty {

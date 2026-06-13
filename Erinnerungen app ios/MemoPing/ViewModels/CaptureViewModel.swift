@@ -2,12 +2,18 @@ import Combine
 import Foundation
 import UIKit
 
+struct CaptureImageAttachment: Identifiable {
+    let id = UUID()
+    let image: UIImage
+    var recognizedText: String?
+}
+
 @MainActor
 final class CaptureViewModel: ObservableObject {
     @Published var inputText = ""
     @Published var recognizedText = ""
     @Published var detectedInfo = DetectedInfo()
-    @Published var images: [UIImage] = []
+    @Published private(set) var imageAttachments: [CaptureImageAttachment] = []
     @Published var isRecording = false
     @Published var isPreparingSpeech = false
     @Published var hasAttemptedSpeechInput = false
@@ -45,7 +51,19 @@ final class CaptureViewModel: ObservableObject {
     }
 
     var canContinue: Bool {
-        !inputText.trimmed.isEmpty || !recognizedText.trimmed.isEmpty || !images.isEmpty
+        !inputText.trimmed.isEmpty || !recognizedText.trimmed.isEmpty || !imageAttachments.isEmpty
+    }
+
+    var remainingImageSlots: Int {
+        max(0, 3 - imageAttachments.count)
+    }
+
+    var canAddMoreImages: Bool {
+        remainingImageSlots > 0
+    }
+
+    var imageLimitMessage: String? {
+        canAddMoreImages ? nil : "Maximal 3 Bilder erreicht."
     }
 
     var speechStatusText: String {
@@ -73,7 +91,7 @@ final class CaptureViewModel: ObservableObject {
     }
 
     var emptyTextHint: String? {
-        canContinue ? nil : "Sprich etwas ein oder gib Text ein."
+        canContinue ? nil : "Sprich etwas ein, gib Text ein oder füge ein Bild hinzu."
     }
 
     func toggleRecording() {
@@ -108,18 +126,39 @@ final class CaptureViewModel: ObservableObject {
     }
 
     func addImage(_ image: UIImage) async {
-        images.append(image)
+        guard canAddMoreImages else {
+            errorMessage = "Du kannst maximal 3 Bilder pro Memo hinzufügen."
+            return
+        }
+
+        let attachment = CaptureImageAttachment(image: image)
+        imageAttachments.append(attachment)
         sourceType = sourceType == .text && inputText.trimmed.isEmpty ? .image : .mixed
         isProcessingImage = true
+        defer { isProcessingImage = false }
 
         do {
             let text = try await ocrService.recognizeText(in: image)
-            appendRecognizedText(text)
+            guard let index = imageAttachments.firstIndex(where: { $0.id == attachment.id }) else {
+                return
+            }
+
+            imageAttachments[index].recognizedText = text
+            rebuildRecognizedText()
+        } catch OCRServiceError.noTextFound {
+            errorMessage = "Im Bild wurde kein Text erkannt."
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
 
-        isProcessingImage = false
+    func removeImage(_ attachment: CaptureImageAttachment) {
+        imageAttachments.removeAll { $0.id == attachment.id }
+        rebuildRecognizedText()
+
+        if imageAttachments.isEmpty, inputText.trimmed.isEmpty {
+            sourceType = .text
+        }
     }
 
     func makeDraft() -> MemoDraft {
@@ -129,7 +168,7 @@ final class CaptureViewModel: ObservableObject {
             title: "",
             bodyText: inputText.trimmed,
             recognizedText: recognizedText.trimmed,
-            images: images,
+            images: imageAttachments.map(\.image),
             sourceType: sourceType,
             detectedInfo: info
         )
@@ -146,12 +185,16 @@ final class CaptureViewModel: ObservableObject {
         isPreparingSpeech = false
     }
 
-    private func appendRecognizedText(_ text: String) {
-        if recognizedText.trimmed.isEmpty {
-            recognizedText = text
-        } else {
-            recognizedText += "\n\n" + text
+    private func rebuildRecognizedText() {
+        let sections = imageAttachments.enumerated().compactMap { index, attachment -> String? in
+            guard let text = attachment.recognizedText?.trimmed, !text.isEmpty else {
+                return nil
+            }
+
+            return "--- Bild \(index + 1) ---\n\(text)"
         }
+
+        recognizedText = sections.joined(separator: "\n\n")
         recalculateDetectedInfo()
     }
 

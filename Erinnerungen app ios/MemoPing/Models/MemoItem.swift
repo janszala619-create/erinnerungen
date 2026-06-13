@@ -1,6 +1,50 @@
 import Foundation
 import SwiftData
 
+enum MemoReminderRepeatRule: String, CaseIterable, Codable, Identifiable {
+    case none
+    case daily
+    case weekly
+    case monthly
+    case yearly
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .none:
+            return "Einmalig"
+        case .daily:
+            return "Täglich"
+        case .weekly:
+            return "Wöchentlich"
+        case .monthly:
+            return "Monatlich"
+        case .yearly:
+            return "Jährlich"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .none:
+            return "bell"
+        case .daily:
+            return "calendar.day.timeline.left"
+        case .weekly:
+            return "calendar.badge.clock"
+        case .monthly:
+            return "calendar"
+        case .yearly:
+            return "calendar.badge.exclamationmark"
+        }
+    }
+
+    var isRepeating: Bool {
+        self != .none
+    }
+}
+
 @Model
 final class MemoItem {
     @Attribute(.unique) var id: UUID
@@ -11,6 +55,7 @@ final class MemoItem {
     var updatedAt: Date
     var reminderDate: Date?
     var hasReminder: Bool
+    var reminderRepeatRawValue: String?
     var isCompleted: Bool
     var priorityRawValue: String
     var categoryRawValue: String?
@@ -30,6 +75,7 @@ final class MemoItem {
         updatedAt: Date = Date(),
         reminderDate: Date? = nil,
         hasReminder: Bool = false,
+        reminderRepeatRule: MemoReminderRepeatRule = .none,
         isCompleted: Bool = false,
         priority: MemoPriority = .normal,
         category: MemoCategory? = nil,
@@ -48,6 +94,7 @@ final class MemoItem {
         self.updatedAt = updatedAt
         self.reminderDate = reminderDate
         self.hasReminder = hasReminder
+        self.reminderRepeatRawValue = reminderRepeatRule.rawValue
         self.isCompleted = isCompleted
         self.priorityRawValue = priority.rawValue
         self.categoryRawValue = category?.rawValue
@@ -81,6 +128,17 @@ extension MemoItem {
 
     var notificationIdentifier: String {
         id.uuidString
+    }
+
+    var reminderRepeatRule: MemoReminderRepeatRule {
+        get {
+            guard let reminderRepeatRawValue else {
+                return .none
+            }
+
+            return MemoReminderRepeatRule(rawValue: reminderRepeatRawValue) ?? .none
+        }
+        set { reminderRepeatRawValue = newValue.rawValue }
     }
 
     var previewText: String {

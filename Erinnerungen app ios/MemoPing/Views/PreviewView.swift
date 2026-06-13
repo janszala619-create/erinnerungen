@@ -198,6 +198,13 @@ struct PreviewView: View {
                     displayedComponents: [.date, .hourAndMinute]
                 )
 
+                Picker("Wiederholen", selection: $viewModel.reminderRepeatRule) {
+                    ForEach(MemoReminderRepeatRule.allCases) { repeatRule in
+                        Label(repeatRule.displayName, systemImage: repeatRule.systemImage)
+                            .tag(repeatRule)
+                    }
+                }
+
                 if let reminderValidationMessage = viewModel.reminderValidationMessage {
                     Label(reminderValidationMessage, systemImage: "exclamationmark.triangle")
                         .font(.caption)
