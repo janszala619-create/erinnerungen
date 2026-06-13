@@ -1,0 +1,477 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		AAF000000000000000000201 /* MemoPingApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000101 /* MemoPingApp.swift */; };
+		AAF000000000000000000202 /* AppRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000102 /* AppRootView.swift */; };
+		AAF000000000000000000203 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000103 /* HomeView.swift */; };
+		AAF000000000000000000204 /* CaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000104 /* CaptureView.swift */; };
+		AAF000000000000000000205 /* PreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000105 /* PreviewView.swift */; };
+		AAF000000000000000000206 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000106 /* DetailView.swift */; };
+		AAF000000000000000000207 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000107 /* SettingsView.swift */; };
+		AAF000000000000000000208 /* HomeViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000108 /* HomeViewModel.swift */; };
+		AAF000000000000000000209 /* CaptureViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000109 /* CaptureViewModel.swift */; };
+		AAF00000000000000000020A /* PreviewViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000010A /* PreviewViewModel.swift */; };
+		AAF00000000000000000020B /* MemoPriority.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000010B /* MemoPriority.swift */; };
+		AAF00000000000000000020C /* MemoCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000010C /* MemoCategory.swift */; };
+		AAF00000000000000000020D /* MemoSourceType.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000010D /* MemoSourceType.swift */; };
+		AAF00000000000000000020E /* DetectedInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000010E /* DetectedInfo.swift */; };
+		AAF00000000000000000020F /* MemoDraft.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000010F /* MemoDraft.swift */; };
+		AAF000000000000000000210 /* MemoItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000110 /* MemoItem.swift */; };
+		AAF000000000000000000211 /* DataDetectionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000111 /* DataDetectionService.swift */; };
+		AAF000000000000000000212 /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000112 /* OCRService.swift */; };
+		AAF000000000000000000213 /* ImageStorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000113 /* ImageStorageService.swift */; };
+		AAF000000000000000000214 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000114 /* NotificationService.swift */; };
+		AAF000000000000000000215 /* SpeechRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000115 /* SpeechRecognitionService.swift */; };
+		AAF000000000000000000216 /* CaptureButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000116 /* CaptureButton.swift */; };
+		AAF000000000000000000217 /* CategoryPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000117 /* CategoryPickerView.swift */; };
+		AAF000000000000000000218 /* PriorityPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000118 /* PriorityPickerView.swift */; };
+		AAF000000000000000000219 /* MemoCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000119 /* MemoCardView.swift */; };
+		AAF00000000000000000021A /* CameraPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000011A /* CameraPickerView.swift */; };
+		AAF00000000000000000021B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000011C /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		AAF000000000000000000101 /* MemoPingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoPingApp.swift; sourceTree = "<group>"; };
+		AAF000000000000000000102 /* AppRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRootView.swift; sourceTree = "<group>"; };
+		AAF000000000000000000103 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		AAF000000000000000000104 /* CaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureView.swift; sourceTree = "<group>"; };
+		AAF000000000000000000105 /* PreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewView.swift; sourceTree = "<group>"; };
+		AAF000000000000000000106 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailView.swift; sourceTree = "<group>"; };
+		AAF000000000000000000107 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		AAF000000000000000000108 /* HomeViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeViewModel.swift; sourceTree = "<group>"; };
+		AAF000000000000000000109 /* CaptureViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureViewModel.swift; sourceTree = "<group>"; };
+		AAF00000000000000000010A /* PreviewViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewViewModel.swift; sourceTree = "<group>"; };
+		AAF00000000000000000010B /* MemoPriority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoPriority.swift; sourceTree = "<group>"; };
+		AAF00000000000000000010C /* MemoCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoCategory.swift; sourceTree = "<group>"; };
+		AAF00000000000000000010D /* MemoSourceType.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoSourceType.swift; sourceTree = "<group>"; };
+		AAF00000000000000000010E /* DetectedInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetectedInfo.swift; sourceTree = "<group>"; };
+		AAF00000000000000000010F /* MemoDraft.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoDraft.swift; sourceTree = "<group>"; };
+		AAF000000000000000000110 /* MemoItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoItem.swift; sourceTree = "<group>"; };
+		AAF000000000000000000111 /* DataDetectionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataDetectionService.swift; sourceTree = "<group>"; };
+		AAF000000000000000000112 /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
+		AAF000000000000000000113 /* ImageStorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageStorageService.swift; sourceTree = "<group>"; };
+		AAF000000000000000000114 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		AAF000000000000000000115 /* SpeechRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechRecognitionService.swift; sourceTree = "<group>"; };
+		AAF000000000000000000116 /* CaptureButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureButton.swift; sourceTree = "<group>"; };
+		AAF000000000000000000117 /* CategoryPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoryPickerView.swift; sourceTree = "<group>"; };
+		AAF000000000000000000118 /* PriorityPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PriorityPickerView.swift; sourceTree = "<group>"; };
+		AAF000000000000000000119 /* MemoCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoCardView.swift; sourceTree = "<group>"; };
+		AAF00000000000000000011A /* CameraPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPickerView.swift; sourceTree = "<group>"; };
+		AAF00000000000000000011B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AAF00000000000000000011C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		AAF00000000000000000000C /* MemoPing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemoPing.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		AAF00000000000000000000F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		AAF000000000000000000003 = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000004 /* MemoPing */,
+				AAF000000000000000000002 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		AAF000000000000000000002 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				AAF00000000000000000000C /* MemoPing.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		AAF000000000000000000004 /* MemoPing */ = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000005 /* App */,
+				AAF000000000000000000006 /* Models */,
+				AAF000000000000000000007 /* Views */,
+				AAF000000000000000000008 /* ViewModels */,
+				AAF000000000000000000009 /* Services */,
+				AAF00000000000000000000A /* Components */,
+			);
+			path = MemoPing;
+			sourceTree = "<group>";
+		};
+		AAF000000000000000000005 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000101 /* MemoPingApp.swift */,
+				AAF00000000000000000011B /* Info.plist */,
+				AAF00000000000000000011C /* Assets.xcassets */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		AAF000000000000000000006 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000110 /* MemoItem.swift */,
+				AAF00000000000000000010B /* MemoPriority.swift */,
+				AAF00000000000000000010C /* MemoCategory.swift */,
+				AAF00000000000000000010D /* MemoSourceType.swift */,
+				AAF00000000000000000010E /* DetectedInfo.swift */,
+				AAF00000000000000000010F /* MemoDraft.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		AAF000000000000000000007 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000102 /* AppRootView.swift */,
+				AAF000000000000000000103 /* HomeView.swift */,
+				AAF000000000000000000104 /* CaptureView.swift */,
+				AAF000000000000000000105 /* PreviewView.swift */,
+				AAF000000000000000000106 /* DetailView.swift */,
+				AAF000000000000000000107 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		AAF000000000000000000008 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000108 /* HomeViewModel.swift */,
+				AAF000000000000000000109 /* CaptureViewModel.swift */,
+				AAF00000000000000000010A /* PreviewViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		AAF000000000000000000009 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000111 /* DataDetectionService.swift */,
+				AAF000000000000000000112 /* OCRService.swift */,
+				AAF000000000000000000113 /* ImageStorageService.swift */,
+				AAF000000000000000000114 /* NotificationService.swift */,
+				AAF000000000000000000115 /* SpeechRecognitionService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		AAF00000000000000000000A /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000119 /* MemoCardView.swift */,
+				AAF000000000000000000117 /* CategoryPickerView.swift */,
+				AAF000000000000000000118 /* PriorityPickerView.swift */,
+				AAF000000000000000000116 /* CaptureButton.swift */,
+				AAF00000000000000000011A /* CameraPickerView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		AAF00000000000000000000B /* MemoPing */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AAF000000000000000000013 /* Build configuration list for PBXNativeTarget "MemoPing" */;
+			buildPhases = (
+				AAF00000000000000000000D /* Sources */,
+				AAF00000000000000000000F /* Frameworks */,
+				AAF00000000000000000000E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MemoPing;
+			productName = MemoPing;
+			productReference = AAF00000000000000000000C /* MemoPing.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		AAF000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					AAF00000000000000000000B = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = AAF000000000000000000010 /* Build configuration list for PBXProject "MemoPing" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = AAF000000000000000000003;
+			productRefGroup = AAF000000000000000000002 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				AAF00000000000000000000B /* MemoPing */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AAF00000000000000000000E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAF00000000000000000021B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		AAF00000000000000000000D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAF000000000000000000201 /* MemoPingApp.swift in Sources */,
+				AAF000000000000000000202 /* AppRootView.swift in Sources */,
+				AAF000000000000000000203 /* HomeView.swift in Sources */,
+				AAF000000000000000000204 /* CaptureView.swift in Sources */,
+				AAF000000000000000000205 /* PreviewView.swift in Sources */,
+				AAF000000000000000000206 /* DetailView.swift in Sources */,
+				AAF000000000000000000207 /* SettingsView.swift in Sources */,
+				AAF000000000000000000208 /* HomeViewModel.swift in Sources */,
+				AAF000000000000000000209 /* CaptureViewModel.swift in Sources */,
+				AAF00000000000000000020A /* PreviewViewModel.swift in Sources */,
+				AAF00000000000000000020B /* MemoPriority.swift in Sources */,
+				AAF00000000000000000020C /* MemoCategory.swift in Sources */,
+				AAF00000000000000000020D /* MemoSourceType.swift in Sources */,
+				AAF00000000000000000020E /* DetectedInfo.swift in Sources */,
+				AAF00000000000000000020F /* MemoDraft.swift in Sources */,
+				AAF000000000000000000210 /* MemoItem.swift in Sources */,
+				AAF000000000000000000211 /* DataDetectionService.swift in Sources */,
+				AAF000000000000000000212 /* OCRService.swift in Sources */,
+				AAF000000000000000000213 /* ImageStorageService.swift in Sources */,
+				AAF000000000000000000214 /* NotificationService.swift in Sources */,
+				AAF000000000000000000215 /* SpeechRecognitionService.swift in Sources */,
+				AAF000000000000000000216 /* CaptureButton.swift in Sources */,
+				AAF000000000000000000217 /* CategoryPickerView.swift in Sources */,
+				AAF000000000000000000218 /* PriorityPickerView.swift in Sources */,
+				AAF000000000000000000219 /* MemoCardView.swift in Sources */,
+				AAF00000000000000000021A /* CameraPickerView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		AAF000000000000000000011 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		AAF000000000000000000012 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		AAF000000000000000000014 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MemoPing/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MemoPing;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AAF000000000000000000015 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MemoPing/App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MemoPing;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AAF000000000000000000010 /* Build configuration list for PBXProject "MemoPing" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAF000000000000000000011 /* Debug */,
+				AAF000000000000000000012 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AAF000000000000000000013 /* Build configuration list for PBXNativeTarget "MemoPing" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAF000000000000000000014 /* Debug */,
+				AAF000000000000000000015 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = AAF000000000000000000001 /* Project object */;
+}
