@@ -234,6 +234,30 @@ struct DetailView: View {
     private var actionSection: some View {
         VStack(spacing: 12) {
             if item.hasReminder {
+                if !item.isCompleted {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Erinnerung verschieben", systemImage: "clock.arrow.circlepath")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+
+                        HStack {
+                            Button("10 Min.") {
+                                snoozeReminder(by: 10 * 60)
+                            }
+
+                            Button("1 Std.") {
+                                snoozeReminder(by: 60 * 60)
+                            }
+
+                            Button("Morgen") {
+                                snoozeReminderUntilTomorrow()
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+
                 Button {
                     removeReminder()
                 } label: {
@@ -454,6 +478,49 @@ struct DetailView: View {
             try modelContext.save()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func snoozeReminder(by timeInterval: TimeInterval) {
+        postponeReminder(to: Date().addingTimeInterval(timeInterval))
+    }
+
+    private func snoozeReminderUntilTomorrow() {
+        let calendar = Calendar.current
+        let sourceDate = item.reminderDate ?? Date().addingTimeInterval(3_600)
+        let reminderTime = calendar.dateComponents([.hour, .minute], from: sourceDate)
+        let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()) ?? Date().addingTimeInterval(86_400)
+        var targetComponents = calendar.dateComponents([.year, .month, .day], from: tomorrow)
+        targetComponents.hour = reminderTime.hour
+        targetComponents.minute = reminderTime.minute
+
+        postponeReminder(to: calendar.date(from: targetComponents) ?? tomorrow)
+    }
+
+    private func postponeReminder(to date: Date) {
+        let previousDate = item.reminderDate
+        let previousRepeatRule = item.reminderRepeatRule
+
+        item.hasReminder = true
+        item.isCompleted = false
+        item.reminderDate = max(date, Date().addingTimeInterval(60))
+        item.reminderRepeatRule = .none
+        item.updatedAt = Date()
+
+        Task { @MainActor in
+            do {
+                try await NotificationService.shared.scheduleReminder(for: item)
+                try modelContext.save()
+
+                if previousRepeatRule.isRepeating {
+                    errorMessage = "Erinnerung wurde einmalig verschoben. Die Wiederholung wurde dafür deaktiviert."
+                }
+            } catch {
+                item.reminderDate = previousDate
+                item.reminderRepeatRule = previousRepeatRule
+                item.updatedAt = Date()
+                errorMessage = error.localizedDescription
+            }
         }
     }
 
