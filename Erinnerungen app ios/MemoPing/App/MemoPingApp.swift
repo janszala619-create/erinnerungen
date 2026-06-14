@@ -9,7 +9,7 @@ struct MemoPingApp: App {
         do {
             let configuration: ModelConfiguration
 
-            if ICloudSyncService.hasCloudKitEntitlement {
+            if ICloudSyncService.isCloudKitModelContainerEnabled {
                 configuration = ModelConfiguration(
                     schema: schema,
                     cloudKitDatabase: .private(ICloudSyncService.cloudKitContainerIdentifier)

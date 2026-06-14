@@ -24,7 +24,7 @@ MemoPing ist eine private iOS-App zum schnellen Erfassen von Notizen, Erinnerung
 
 - `MemoPing/MemoPing.entitlements` aktiviert CloudKit fuer `iCloud.$(PRODUCT_BUNDLE_IDENTIFIER)`.
 - `MemoPingApp` erstellt einen SwiftData-Container mit privater CloudKit-Datenbank.
-- Wenn die App ohne CloudKit-Entitlements installiert wurde, zum Beispiel als unsigned GitHub-IPA, startet sie mit einem lokalen SwiftData-Container.
+- Die unsigned GitHub-IPA wird mit `MEMOPING_UNSIGNED_IPA` gebaut und startet bewusst mit lokalem SwiftData-Speicher. CloudKit ist fuer signierte Xcode-Builds vorgesehen.
 - Synchronisiert werden Memo-Metadaten, Text, OCR-Text, Reminder-Daten, Wiederholungsregel, Kategorie, Prioritaet und erkannte Informationen.
 - Lokale Bilddateien werden nicht automatisch durch CloudKit synchronisiert; nur die gespeicherten Dateinamen sind Teil des Memo-Datensatzes.
 - Lokale Benachrichtigungen bleiben pro Geraet. Beim Anzeigen der Memo-Liste werden vorhandene Reminder-Daten wieder lokal geplant, sofern Benachrichtigungen erlaubt sind.
