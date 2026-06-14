@@ -3,16 +3,11 @@ import SwiftUI
 
 @main
 struct MemoPingApp: App {
-    private let modelContainer: ModelContainer = {
-        let schema = Schema([MemoItem.self])
+    private let modelContainer = MemoDataStore.shared.container
 
-        do {
-            let configuration = ModelConfiguration(schema: schema)
-            return try ModelContainer(for: schema, configurations: [configuration])
-        } catch {
-            fatalError("MemoPing: ModelContainer konnte nicht erstellt werden: \(error)")
-        }
-    }()
+    init() {
+        MemoPingAppShortcuts.updateAppShortcutParameters()
+    }
 
     var body: some Scene {
         WindowGroup {

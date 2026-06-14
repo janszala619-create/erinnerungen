@@ -35,6 +35,9 @@
 		AAF00000000000000000021A /* CameraPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000011A /* CameraPickerView.swift */; };
 		AAF00000000000000000021B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000011C /* Assets.xcassets */; };
 		AAF00000000000000000021C /* ICloudSyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000011D /* ICloudSyncService.swift */; };
+		AAF00000000000000000021D /* MemoDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000011F /* MemoDataStore.swift */; };
+		AAF00000000000000000021E /* CaptureRequestCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000120 /* CaptureRequestCenter.swift */; };
+		AAF00000000000000000021F /* MemoPingAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000121 /* MemoPingAppIntents.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -68,6 +71,9 @@
 		AAF00000000000000000011C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AAF00000000000000000011D /* ICloudSyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ICloudSyncService.swift; sourceTree = "<group>"; };
 		AAF00000000000000000011E /* MemoPing.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MemoPing.entitlements; sourceTree = "<group>"; };
+		AAF00000000000000000011F /* MemoDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoDataStore.swift; sourceTree = "<group>"; };
+		AAF000000000000000000120 /* CaptureRequestCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureRequestCenter.swift; sourceTree = "<group>"; };
+		AAF000000000000000000121 /* MemoPingAppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoPingAppIntents.swift; sourceTree = "<group>"; };
 		AAF00000000000000000000C /* MemoPing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemoPing.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -107,6 +113,7 @@
 				AAF000000000000000000008 /* ViewModels */,
 				AAF000000000000000000009 /* Services */,
 				AAF00000000000000000000A /* Components */,
+				AAF00000000000000000001B /* AppIntents */,
 				AAF00000000000000000011E /* MemoPing.entitlements */,
 			);
 			path = MemoPing;
@@ -167,8 +174,18 @@
 				AAF000000000000000000114 /* NotificationService.swift */,
 				AAF000000000000000000115 /* SpeechRecognitionService.swift */,
 				AAF00000000000000000011D /* ICloudSyncService.swift */,
+				AAF00000000000000000011F /* MemoDataStore.swift */,
+				AAF000000000000000000120 /* CaptureRequestCenter.swift */,
 			);
 			path = Services;
+			sourceTree = "<group>";
+		};
+		AAF00000000000000000001B /* AppIntents */ = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000121 /* MemoPingAppIntents.swift */,
+			);
+			path = AppIntents;
 			sourceTree = "<group>";
 		};
 		AAF00000000000000000000A /* Components */ = {
@@ -279,6 +296,9 @@
 				AAF000000000000000000214 /* NotificationService.swift in Sources */,
 				AAF000000000000000000215 /* SpeechRecognitionService.swift in Sources */,
 				AAF00000000000000000021C /* ICloudSyncService.swift in Sources */,
+				AAF00000000000000000021D /* MemoDataStore.swift in Sources */,
+				AAF00000000000000000021E /* CaptureRequestCenter.swift in Sources */,
+				AAF00000000000000000021F /* MemoPingAppIntents.swift in Sources */,
 				AAF000000000000000000216 /* CaptureButton.swift in Sources */,
 				AAF000000000000000000217 /* CategoryPickerView.swift in Sources */,
 				AAF000000000000000000218 /* PriorityPickerView.swift in Sources */,
