@@ -3,6 +3,7 @@ import UserNotifications
 
 struct SettingsView: View {
     @State private var notificationStatus: UNAuthorizationStatus = .notDetermined
+    @State private var iCloudState: ICloudAccountState = .couldNotDetermine
     @State private var errorMessage: String?
 
     var body: some View {
@@ -45,9 +46,32 @@ struct SettingsView: View {
                 #endif
             }
 
+            Section("iCloud Sync") {
+                HStack {
+                    Label("Status", systemImage: "icloud")
+                    Spacer()
+                    Text(iCloudState.displayText)
+                        .foregroundStyle(iCloudState == .available ? Color.green : Color.secondary)
+                }
+
+                Text("MemoPing synchronisiert Memos über iCloud, wenn iCloud auf diesem Gerät aktiviert ist.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Text(iCloudState.detailText)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                #if DEBUG
+                Text(ICloudSyncService.cloudKitContainerIdentifier)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                #endif
+            }
+
             Section("Datenschutz") {
-                Label("MemoPing speichert deine Memos lokal auf deinem Gerät. Es gibt keinen Login, keine Cloud und kein Backend.", systemImage: "lock")
-                Text("Spracherkennung wird über iOS bereitgestellt. Je nach Systemeinstellung kann Apple die Verarbeitung unterstützen. Deine gespeicherten Memos bleiben lokal auf deinem Gerät.")
+                Label("Die Synchronisation läuft über Apples iCloud/CloudKit. MemoPing verwendet keinen eigenen Server.", systemImage: "lock")
+                Text("Spracherkennung wird über iOS bereitgestellt. Bilder bleiben in dieser Version als lokale Dateien auf dem jeweiligen Gerät gespeichert.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -71,6 +95,7 @@ struct SettingsView: View {
         .navigationTitle("Einstellungen")
         .task {
             await refreshNotificationStatus()
+            await refreshICloudStatus()
         }
         .alert("Hinweis", isPresented: errorBinding) {
             Button("OK", role: .cancel) {
@@ -105,6 +130,10 @@ struct SettingsView: View {
 
     private func refreshNotificationStatus() async {
         notificationStatus = await NotificationService.shared.getAuthorizationStatus()
+    }
+
+    private func refreshICloudStatus() async {
+        iCloudState = await ICloudSyncService.shared.accountState()
     }
 
     #if DEBUG

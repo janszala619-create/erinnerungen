@@ -43,6 +43,9 @@ struct HomeView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+        .task(id: reminderPlanSignature) {
+            await planSyncedRemindersIfNeeded()
+        }
     }
 
     @ViewBuilder
@@ -133,6 +136,13 @@ struct HomeView: View {
         )
     }
 
+    private var reminderPlanSignature: String {
+        items
+            .filter { $0.hasReminder && !$0.isCompleted && $0.reminderDate != nil }
+            .map { "\($0.id.uuidString)-\($0.reminderDate?.timeIntervalSince1970 ?? 0)-\($0.reminderRepeatRawValue ?? "")" }
+            .joined(separator: "|")
+    }
+
     private func deleteItems(at offsets: IndexSet, in sectionItems: [MemoItem]) {
         offsets.map { sectionItems[$0] }.forEach(delete)
     }
@@ -168,6 +178,25 @@ struct HomeView: View {
                 try modelContext.save()
             } catch {
                 errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func planSyncedRemindersIfNeeded() async {
+        let notificationStatus = await NotificationService.shared.getAuthorizationStatus()
+        guard notificationStatus == .authorized || notificationStatus == .provisional || notificationStatus == .ephemeral else {
+            return
+        }
+
+        for item in items where item.hasReminder && !item.isCompleted {
+            guard item.reminderDate != nil else { continue }
+
+            do {
+                try await NotificationService.shared.scheduleReminder(for: item)
+            } catch {
+                #if DEBUG
+                print("MemoPing: Lokale Erinnerung konnte nach Sync nicht geplant werden: \(error)")
+                #endif
             }
         }
     }
