@@ -7,7 +7,7 @@ MemoPing ist eine private iOS-App zum schnellen Erfassen von Notizen, Erinnerung
 - Kein Login
 - Kein Backend
 - Keine Firebase- oder KI-API
-- SwiftData speichert Memo-Daten lokal und synchronisiert sie ueber Apples iCloud/CloudKit, wenn iCloud verfuegbar ist
+- SwiftData speichert Memo-Daten in der aktuellen unsigned IPA lokal auf dem Geraet
 - Bilder werden als Dateien lokal in `Application Support/MemoPingImages` gespeichert und in dieser Version nicht zwischen Geraeten synchronisiert
 - Spracherkennung wird mit `requiresOnDeviceRecognition = true` auf lokale Erkennung begrenzt
 
@@ -16,17 +16,17 @@ MemoPing ist eine private iOS-App zum schnellen Erfassen von Notizen, Erinnerung
 1. Oeffne `MemoPing.xcodeproj` in Xcode.
 2. Waehle das Target `MemoPing`.
 3. Setze bei Bedarf unter "Signing & Capabilities" dein Apple-Team.
-4. Pruefe unter "Signing & Capabilities", dass iCloud mit CloudKit aktiv ist.
-5. Setze einen echten Bundle Identifier. Der CloudKit-Container wird als `iCloud.<Bundle Identifier>` verwendet.
-6. Starte die App auf einem iPhone oder Simulator mit iOS 17 oder neuer.
+4. Setze einen echten Bundle Identifier, falls du die App signiert auf einem Geraet testen willst.
+5. Starte die App auf einem iPhone oder Simulator mit iOS 17 oder neuer.
 
-## iCloud/CloudKit Sync
+## iCloud/CloudKit Status
 
-- `MemoPing/MemoPing.entitlements` bereitet CloudKit fuer `iCloud.$(PRODUCT_BUNDLE_IDENTIFIER)` vor.
-- `MemoPingApp` und die Einstellungen starten in der unsigned GitHub-IPA bewusst mit lokalem SwiftData-Speicher, damit die App ohne signierte iCloud-Entitlements stabil oeffnet.
-- Synchronisiert werden Memo-Metadaten, Text, OCR-Text, Reminder-Daten, Wiederholungsregel, Kategorie, Prioritaet und erkannte Informationen.
-- Lokale Bilddateien werden nicht automatisch durch CloudKit synchronisiert; nur die gespeicherten Dateinamen sind Teil des Memo-Datensatzes.
-- Lokale Benachrichtigungen bleiben pro Geraet. Beim Anzeigen der Memo-Liste werden vorhandene Reminder-Daten wieder lokal geplant, sofern Benachrichtigungen erlaubt sind.
+- CloudKit ist im Projekt vorbereitet, aber in der aktuellen unsigned GitHub-IPA bewusst nicht aktiv.
+- Die IPA nutzt lokalen SwiftData-Speicher, damit die App ohne signierte iCloud-Entitlements stabil oeffnet.
+- Die Einstellungen fragen CloudKit in der unsigned IPA nicht direkt ab.
+- Lokale Bilddateien bleiben auf dem jeweiligen Geraet.
+- Lokale Benachrichtigungen bleiben pro Geraet und werden nicht ueber iCloud synchronisiert.
+- CloudKit-Sync sollte erst in einem signierten Xcode-Build mit echter Apple Team ID, Bundle Identifier und aktivierter iCloud/CloudKit Capability wieder aktiviert und getestet werden.
 
 ## Benoetigte Info.plist-Berechtigungen
 
