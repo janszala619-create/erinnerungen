@@ -7,10 +7,20 @@ struct MemoPingApp: App {
         let schema = Schema([MemoItem.self])
 
         do {
-            let configuration = ModelConfiguration(
-                schema: schema,
-                cloudKitDatabase: .private(ICloudSyncService.cloudKitContainerIdentifier)
-            )
+            let configuration: ModelConfiguration
+
+            if ICloudSyncService.hasCloudKitEntitlement {
+                configuration = ModelConfiguration(
+                    schema: schema,
+                    cloudKitDatabase: .private(ICloudSyncService.cloudKitContainerIdentifier)
+                )
+            } else {
+                configuration = ModelConfiguration(schema: schema)
+
+                #if DEBUG
+                print("MemoPing: Keine CloudKit-Entitlements gefunden. Starte mit lokalem SwiftData-Container.")
+                #endif
+            }
 
             return try ModelContainer(for: schema, configurations: [configuration])
         } catch {

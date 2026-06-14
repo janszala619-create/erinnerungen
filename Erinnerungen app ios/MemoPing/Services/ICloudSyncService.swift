@@ -1,5 +1,6 @@
 import CloudKit
 import Foundation
+import Security
 
 enum ICloudAccountState: Equatable {
     case available
@@ -47,9 +48,34 @@ final class ICloudSyncService {
         return "iCloud.\(bundleIdentifier)"
     }
 
+    static var hasCloudKitEntitlement: Bool {
+        guard let task = SecTaskCreateFromSelf(nil),
+              let value = SecTaskCopyValueForEntitlement(
+                task,
+                "com.apple.developer.icloud-services" as CFString,
+                nil
+              ) else {
+            return false
+        }
+
+        if let services = value as? [String] {
+            return services.contains("CloudKit")
+        }
+
+        if let service = value as? String {
+            return service == "CloudKit"
+        }
+
+        return false
+    }
+
     private init() {}
 
     func accountState() async -> ICloudAccountState {
+        guard Self.hasCloudKitEntitlement else {
+            return .temporarilyUnavailable("Diese App wurde ohne CloudKit-Entitlements installiert. Lokal gespeicherte Memos funktionieren weiterhin.")
+        }
+
         await withCheckedContinuation { continuation in
             CKContainer(identifier: Self.cloudKitContainerIdentifier).accountStatus { status, error in
                 if let error {
