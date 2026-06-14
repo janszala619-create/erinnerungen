@@ -69,7 +69,9 @@ struct HomeView: View {
                             NavigationLink {
                                 DetailView(item: item)
                             } label: {
-                                MemoCardView(item: item)
+                                MemoCardView(item: item) {
+                                    toggleCompleted(item)
+                                }
                             }
                             .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                             .listRowSeparator(.hidden)

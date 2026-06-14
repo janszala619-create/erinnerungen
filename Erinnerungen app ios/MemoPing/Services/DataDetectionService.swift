@@ -180,7 +180,9 @@ private extension DetectedInfo {
 }
 
 private extension String {
-    
+    var trimmed: String {
+        trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     var phoneDedupKey: String {
         filter { $0.isNumber || $0 == "+" }

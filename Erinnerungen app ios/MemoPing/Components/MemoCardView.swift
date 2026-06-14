@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MemoCardView: View {
     let item: MemoItem
+    var onToggleCompleted: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -27,15 +28,55 @@ struct MemoCardView: View {
 
                 Spacer(minLength: 8)
 
-                if !item.imageFileNames.isEmpty {
-                    Image(systemName: "photo")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .accessibilityLabel("Enthält Bild")
+                HStack(spacing: 10) {
+                    if !item.imageFileNames.isEmpty {
+                        Image(systemName: "photo")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .accessibilityLabel("Enthält Bild")
+                    }
+
+                    if let onToggleCompleted {
+                        Button {
+                            onToggleCompleted()
+                        } label: {
+                            Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
+                                .font(.title3.weight(.semibold))
+                                .foregroundStyle(item.isCompleted ? .green : .secondary)
+                                .frame(width: 32, height: 32)
+                        }
+                        .buttonStyle(.borderless)
+                        .accessibilityLabel(item.isCompleted ? "Als offen markieren" : "Als erledigt markieren")
+                    }
                 }
             }
 
-            FlowMetaRow {
+            metadataRow
+        }
+        .padding(14)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.05))
+        }
+        .opacity(item.isCompleted ? 0.72 : 1)
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
+    }
+
+    private var iconName: String {
+        if item.hasReminder {
+            return "bell.circle"
+        }
+        if !item.imageFileNames.isEmpty {
+            return "photo.circle"
+        }
+        return "note.text"
+    }
+
+    private var metadataRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
                 if let category = item.category {
                     memoBadge(category.displayName, systemImage: category.systemImage, tint: category.tint)
                 }
@@ -62,26 +103,9 @@ struct MemoCardView: View {
                     iconBadge("calendar", label: "Datum erkannt")
                 }
             }
+            .padding(.vertical, 1)
         }
-        .padding(14)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .strokeBorder(Color.primary.opacity(0.05))
-        }
-        .opacity(item.isCompleted ? 0.72 : 1)
-        .contentShape(Rectangle())
-        .accessibilityElement(children: .combine)
-    }
-
-    private var iconName: String {
-        if item.hasReminder {
-            return "bell.circle"
-        }
-        if !item.imageFileNames.isEmpty {
-            return "photo.circle"
-        }
-        return "note.text"
+        .accessibilityLabel("Details zur Erinnerung")
     }
 
     private func memoBadge(_ title: String, systemImage: String, tint: Color) -> some View {
@@ -89,6 +113,8 @@ struct MemoCardView: View {
             .labelStyle(.titleAndIcon)
             .font(.caption.weight(.medium))
             .foregroundStyle(tint)
+            .lineLimit(1)
+            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
             .background(tint.opacity(0.12), in: Capsule())
@@ -101,20 +127,5 @@ struct MemoCardView: View {
             .frame(width: 26, height: 26)
             .background(Color(.tertiarySystemGroupedBackground), in: Circle())
             .accessibilityLabel(label)
-    }
-}
-
-private struct FlowMetaRow<Content: View>: View {
-    let content: Content
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    var body: some View {
-        HStack(spacing: 8) {
-            content
-            Spacer(minLength: 0)
-        }
     }
 }
