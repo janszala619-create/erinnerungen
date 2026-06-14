@@ -47,21 +47,9 @@ final class ICloudSyncService {
         return "iCloud.\(bundleIdentifier)"
     }
 
-    static var isCloudKitModelContainerEnabled: Bool {
-        #if MEMOPING_UNSIGNED_IPA
-        return false
-        #else
-        return true
-        #endif
-    }
-
     private init() {}
 
     func accountState() async -> ICloudAccountState {
-        guard Self.isCloudKitModelContainerEnabled else {
-            return .temporarilyUnavailable("Diese unsigned IPA nutzt lokalen Speicher. CloudKit wird erst in einem signierten Xcode-Build aktiviert.")
-        }
-
         await withCheckedContinuation { continuation in
             CKContainer(identifier: Self.cloudKitContainerIdentifier).accountStatus { status, error in
                 if let error {

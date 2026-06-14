@@ -10,6 +10,7 @@ env:
   XCODE_CONTAINER: "Erinnerungen app ios/MemoPing.xcodeproj"
   SCHEME: "MemoPing"
   CONFIGURATION: Release
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build-ios:
