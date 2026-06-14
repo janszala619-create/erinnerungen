@@ -448,6 +448,7 @@ struct DetailView: View {
                 }
 
                 try modelContext.save()
+                refreshWidgetSnapshot()
                 isEditing = false
             } catch {
                 errorMessage = error.localizedDescription
@@ -464,6 +465,7 @@ struct DetailView: View {
 
         do {
             try modelContext.save()
+            refreshWidgetSnapshot()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -476,6 +478,7 @@ struct DetailView: View {
 
         do {
             try modelContext.save()
+            refreshWidgetSnapshot()
         } catch {
             errorMessage = error.localizedDescription
         }
@@ -511,6 +514,7 @@ struct DetailView: View {
             do {
                 try await NotificationService.shared.scheduleReminder(for: item)
                 try modelContext.save()
+                refreshWidgetSnapshot()
 
                 if previousRepeatRule.isRepeating {
                     errorMessage = "Erinnerung wurde einmalig verschoben. Die Wiederholung wurde dafür deaktiviert."
@@ -546,6 +550,7 @@ struct DetailView: View {
 
             do {
                 try modelContext.save()
+                refreshWidgetSnapshot()
                 dismiss()
             } catch {
                 errorMessage = error.localizedDescription
@@ -581,5 +586,12 @@ struct DetailView: View {
         item.detectedURLs = info.urls
         item.detectedAddresses = info.addresses
         item.detectedDateStrings = info.formattedDates()
+    }
+
+    private func refreshWidgetSnapshot() {
+        let descriptor = FetchDescriptor<MemoItem>()
+        if let items = try? modelContext.fetch(descriptor) {
+            MemoWidgetSnapshotUpdater.update(from: items)
+        }
     }
 }

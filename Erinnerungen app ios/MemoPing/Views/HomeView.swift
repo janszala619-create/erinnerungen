@@ -46,6 +46,9 @@ struct HomeView: View {
         .task(id: reminderPlanSignature) {
             await planSyncedRemindersIfNeeded()
         }
+        .task(id: widgetSnapshotSignature) {
+            MemoWidgetSnapshotUpdater.update(from: items)
+        }
     }
 
     @ViewBuilder
@@ -143,6 +146,20 @@ struct HomeView: View {
             .joined(separator: "|")
     }
 
+    private var widgetSnapshotSignature: String {
+        items
+            .map { item in
+                [
+                    item.id.uuidString,
+                    item.title,
+                    "\(item.hasReminder)",
+                    "\(item.isCompleted)",
+                    "\(item.reminderDate?.timeIntervalSince1970 ?? 0)"
+                ].joined(separator: "-")
+            }
+            .joined(separator: "|")
+    }
+
     private func deleteItems(at offsets: IndexSet, in sectionItems: [MemoItem]) {
         offsets.map { sectionItems[$0] }.forEach(delete)
     }
@@ -160,6 +177,7 @@ struct HomeView: View {
                     try await NotificationService.shared.scheduleReminder(for: item)
                 }
                 try modelContext.save()
+                MemoWidgetSnapshotUpdater.update(from: items)
             } catch {
                 item.isCompleted = previousCompletionState
                 item.updatedAt = Date()
@@ -176,6 +194,7 @@ struct HomeView: View {
 
             do {
                 try modelContext.save()
+                MemoWidgetSnapshotUpdater.update(from: items)
             } catch {
                 errorMessage = error.localizedDescription
             }

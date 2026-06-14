@@ -38,7 +38,37 @@
 		AAF00000000000000000021D /* MemoDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF00000000000000000011F /* MemoDataStore.swift */; };
 		AAF00000000000000000021E /* CaptureRequestCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000120 /* CaptureRequestCenter.swift */; };
 		AAF00000000000000000021F /* MemoPingAppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000121 /* MemoPingAppIntents.swift */; };
+		AAF000000000000000000220 /* MemoWidgetSnapshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000122 /* MemoWidgetSnapshotStore.swift */; };
+		AAF000000000000000000221 /* MemoWidgetSnapshotUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000123 /* MemoWidgetSnapshotUpdater.swift */; };
+		AAF000000000000000000222 /* MemoPingWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000124 /* MemoPingWidgetBundle.swift */; };
+		AAF000000000000000000223 /* MemoPingTodayRemindersWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000125 /* MemoPingTodayRemindersWidget.swift */; };
+		AAF000000000000000000224 /* MemoWidgetSnapshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000122 /* MemoWidgetSnapshotStore.swift */; };
+		AAF000000000000000000225 /* MemoPingWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = AAF000000000000000000128 /* MemoPingWidget.appex */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AAF00000000000000000001F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AAF000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AAF00000000000000000001E;
+			remoteInfo = MemoPingWidget;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		AAF000000000000000000020 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				AAF000000000000000000225 /* MemoPingWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		AAF000000000000000000101 /* MemoPingApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoPingApp.swift; sourceTree = "<group>"; };
@@ -74,11 +104,25 @@
 		AAF00000000000000000011F /* MemoDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoDataStore.swift; sourceTree = "<group>"; };
 		AAF000000000000000000120 /* CaptureRequestCenter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureRequestCenter.swift; sourceTree = "<group>"; };
 		AAF000000000000000000121 /* MemoPingAppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoPingAppIntents.swift; sourceTree = "<group>"; };
+		AAF000000000000000000122 /* MemoWidgetSnapshotStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoWidgetSnapshotStore.swift; sourceTree = "<group>"; };
+		AAF000000000000000000123 /* MemoWidgetSnapshotUpdater.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoWidgetSnapshotUpdater.swift; sourceTree = "<group>"; };
+		AAF000000000000000000124 /* MemoPingWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoPingWidgetBundle.swift; sourceTree = "<group>"; };
+		AAF000000000000000000125 /* MemoPingTodayRemindersWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MemoPingTodayRemindersWidget.swift; sourceTree = "<group>"; };
+		AAF000000000000000000126 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		AAF000000000000000000127 /* MemoPingWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MemoPingWidget.entitlements; sourceTree = "<group>"; };
+		AAF000000000000000000128 /* MemoPingWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MemoPingWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		AAF00000000000000000000C /* MemoPing.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MemoPing.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		AAF00000000000000000000F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AAF000000000000000000023 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -92,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				AAF000000000000000000004 /* MemoPing */,
+				AAF00000000000000000001D /* MemoPingWidget */,
 				AAF000000000000000000002 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -100,6 +145,7 @@
 			isa = PBXGroup;
 			children = (
 				AAF00000000000000000000C /* MemoPing.app */,
+				AAF000000000000000000128 /* MemoPingWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -114,6 +160,7 @@
 				AAF000000000000000000009 /* Services */,
 				AAF00000000000000000000A /* Components */,
 				AAF00000000000000000001B /* AppIntents */,
+				AAF00000000000000000001C /* Shared */,
 				AAF00000000000000000011E /* MemoPing.entitlements */,
 			);
 			path = MemoPing;
@@ -176,6 +223,7 @@
 				AAF00000000000000000011D /* ICloudSyncService.swift */,
 				AAF00000000000000000011F /* MemoDataStore.swift */,
 				AAF000000000000000000120 /* CaptureRequestCenter.swift */,
+				AAF000000000000000000123 /* MemoWidgetSnapshotUpdater.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -186,6 +234,25 @@
 				AAF000000000000000000121 /* MemoPingAppIntents.swift */,
 			);
 			path = AppIntents;
+			sourceTree = "<group>";
+		};
+		AAF00000000000000000001C /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000122 /* MemoWidgetSnapshotStore.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		AAF00000000000000000001D /* MemoPingWidget */ = {
+			isa = PBXGroup;
+			children = (
+				AAF000000000000000000124 /* MemoPingWidgetBundle.swift */,
+				AAF000000000000000000125 /* MemoPingTodayRemindersWidget.swift */,
+				AAF000000000000000000126 /* Info.plist */,
+				AAF000000000000000000127 /* MemoPingWidget.entitlements */,
+			);
+			path = MemoPingWidget;
 			sourceTree = "<group>";
 		};
 		AAF00000000000000000000A /* Components */ = {
@@ -210,15 +277,34 @@
 				AAF00000000000000000000D /* Sources */,
 				AAF00000000000000000000F /* Frameworks */,
 				AAF00000000000000000000E /* Resources */,
+				AAF000000000000000000020 /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				AAF000000000000000000021 /* PBXTargetDependency */,
 			);
 			name = MemoPing;
 			productName = MemoPing;
 			productReference = AAF00000000000000000000C /* MemoPing.app */;
 			productType = "com.apple.product-type.application";
+		};
+		AAF00000000000000000001E /* MemoPingWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AAF000000000000000000018 /* Build configuration list for PBXNativeTarget "MemoPingWidget" */;
+			buildPhases = (
+				AAF000000000000000000022 /* Sources */,
+				AAF000000000000000000023 /* Frameworks */,
+				AAF000000000000000000024 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MemoPingWidget;
+			productName = MemoPingWidget;
+			productReference = AAF000000000000000000128 /* MemoPingWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -233,7 +319,18 @@
 					AAF00000000000000000000B = {
 						CreatedOnToolsVersion = 15.0;
 						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
+								enabled = 1;
+							};
 							com.apple.iCloud = {
+								enabled = 1;
+							};
+						};
+					};
+					AAF00000000000000000001E = {
+						CreatedOnToolsVersion = 15.0;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.iOS = {
 								enabled = 1;
 							};
 						};
@@ -254,6 +351,7 @@
 			projectRoot = "";
 			targets = (
 				AAF00000000000000000000B /* MemoPing */,
+				AAF00000000000000000001E /* MemoPingWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -264,6 +362,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				AAF00000000000000000021B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		AAF000000000000000000024 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -299,6 +404,8 @@
 				AAF00000000000000000021D /* MemoDataStore.swift in Sources */,
 				AAF00000000000000000021E /* CaptureRequestCenter.swift in Sources */,
 				AAF00000000000000000021F /* MemoPingAppIntents.swift in Sources */,
+				AAF000000000000000000220 /* MemoWidgetSnapshotStore.swift in Sources */,
+				AAF000000000000000000221 /* MemoWidgetSnapshotUpdater.swift in Sources */,
 				AAF000000000000000000216 /* CaptureButton.swift in Sources */,
 				AAF000000000000000000217 /* CategoryPickerView.swift in Sources */,
 				AAF000000000000000000218 /* PriorityPickerView.swift in Sources */,
@@ -307,7 +414,25 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AAF000000000000000000022 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAF000000000000000000222 /* MemoPingWidgetBundle.swift in Sources */,
+				AAF000000000000000000223 /* MemoPingTodayRemindersWidget.swift in Sources */,
+				AAF000000000000000000224 /* MemoWidgetSnapshotStore.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AAF000000000000000000021 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AAF00000000000000000001E /* MemoPingWidget */;
+			targetProxy = AAF00000000000000000001F /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		AAF000000000000000000011 /* Debug */ = {
@@ -483,6 +608,65 @@
 			};
 			name = Release;
 		};
+		AAF000000000000000000016 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MemoPingWidget/MemoPingWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MemoPingWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MemoPing.MemoPingWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		AAF000000000000000000017 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CODE_SIGN_ENTITLEMENTS = MemoPingWidget/MemoPingWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MemoPingWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.MemoPing.MemoPingWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -500,6 +684,15 @@
 			buildConfigurations = (
 				AAF000000000000000000014 /* Debug */,
 				AAF000000000000000000015 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AAF000000000000000000018 /* Build configuration list for PBXNativeTarget "MemoPingWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AAF000000000000000000016 /* Debug */,
+				AAF000000000000000000017 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -155,6 +155,7 @@ enum MemoIntentDataProvider {
         item.updatedAt = Date()
         NotificationService.shared.cancelReminder(for: item)
         try context.save()
+        MemoWidgetSnapshotUpdater.update(from: items)
 
         return "Erledigt markiert: \(item.title)"
     }
