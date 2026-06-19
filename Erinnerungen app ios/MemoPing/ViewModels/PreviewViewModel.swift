@@ -81,7 +81,7 @@ final class PreviewViewModel: ObservableObject {
     @Published var hasReminder = false
     @Published var reminderRepeatRule: MemoReminderRepeatRule = .none
     @Published var reminderLeadTime: MemoReminderLeadTime = .none
-    @Published var category: MemoCategory?
+    @Published var categoryRawValue: String?
     @Published var priority: MemoPriority = .normal
     @Published private(set) var imageAttachments: [PreviewImageAttachment] = []
     @Published var detectedInfo: DetectedInfo
@@ -323,7 +323,7 @@ final class PreviewViewModel: ObservableObject {
             reminderRepeatRule: shouldScheduleReminder ? reminderRepeatRule : .none,
             reminderLeadTime: shouldScheduleReminder ? reminderLeadTime : .none,
             priority: priority,
-            category: category,
+            categoryRawValue: categoryRawValue,
             sourceType: sourceType,
             imageFileNames: storedImageNames,
             detectedPhoneNumbers: infoToStore.phoneNumbers,

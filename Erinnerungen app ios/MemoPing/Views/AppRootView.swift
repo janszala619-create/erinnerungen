@@ -29,5 +29,5 @@ struct AppRootView: View {
 
 #Preview {
     AppRootView()
-        .modelContainer(for: MemoItem.self, inMemory: true)
+        .modelContainer(for: [MemoItem.self, MemoCategoryItem.self], inMemory: true)
 }

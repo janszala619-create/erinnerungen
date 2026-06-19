@@ -7,7 +7,10 @@ final class MemoDataStore {
     let container: ModelContainer
 
     private init() {
-        let schema = Schema([MemoItem.self])
+        let schema = Schema([
+            MemoItem.self,
+            MemoCategoryItem.self
+        ])
 
         do {
             let configuration = ModelConfiguration(schema: schema)

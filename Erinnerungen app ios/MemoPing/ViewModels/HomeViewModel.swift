@@ -33,10 +33,10 @@ struct MemoSectionGroup: Identifiable {
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published var searchText = ""
-    @Published var selectedCategory: MemoCategory?
+    @Published var selectedCategoryRawValue: String?
 
-    func sectionGroups(from items: [MemoItem]) -> [MemoSectionGroup] {
-        let filteredItems = filtered(items)
+    func sectionGroups(from items: [MemoItem], categories: [MemoCategoryItem]) -> [MemoSectionGroup] {
+        let filteredItems = filtered(items, categories: categories)
         let calendar = Calendar.current
 
         let today = filteredItems.filter { item in
@@ -67,11 +67,11 @@ final class HomeViewModel: ObservableObject {
         ].filter { !$0.items.isEmpty }
     }
 
-    private func filtered(_ items: [MemoItem]) -> [MemoItem] {
+    private func filtered(_ items: [MemoItem], categories: [MemoCategoryItem]) -> [MemoItem] {
         let normalizedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
 
         return items.filter { item in
-            let categoryMatches = selectedCategory == nil || item.category == selectedCategory
+            let categoryMatches = selectedCategoryRawValue == nil || item.categoryRawValue == selectedCategoryRawValue
 
             guard categoryMatches else {
                 return false
@@ -85,7 +85,7 @@ final class HomeViewModel: ObservableObject {
                 item.title,
                 item.bodyText,
                 item.recognizedText,
-                item.category?.displayName ?? "",
+                MemoCategoryItem.item(for: item.categoryRawValue, in: categories)?.displayName ?? "",
                 item.priority.displayName,
                 item.detectedPhoneNumbers.joined(separator: " "),
                 item.detectedURLs.joined(separator: " "),

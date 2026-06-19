@@ -167,6 +167,7 @@ final class MemoItem {
         isCompleted: Bool = false,
         priority: MemoPriority = .normal,
         category: MemoCategory? = nil,
+        categoryRawValue: String? = nil,
         sourceType: MemoSourceType = .text,
         imageFileNames: [String] = [],
         detectedPhoneNumbers: [String] = [],
@@ -186,7 +187,7 @@ final class MemoItem {
         self.reminderLeadTimeRawValue = reminderLeadTime.rawValue
         self.isCompleted = isCompleted
         self.priorityRawValue = priority.rawValue
-        self.categoryRawValue = category?.rawValue
+        self.categoryRawValue = categoryRawValue ?? category?.rawValue
         self.sourceTypeRawValue = sourceType.rawValue
         self.imageFileNames = imageFileNames
         self.detectedPhoneNumbers = detectedPhoneNumbers

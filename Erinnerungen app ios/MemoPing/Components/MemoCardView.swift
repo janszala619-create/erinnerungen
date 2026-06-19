@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MemoCardView: View {
     let item: MemoItem
+    var category: MemoCategoryItem? = nil
     var onToggleCompleted: (() -> Void)?
 
     var body: some View {
@@ -77,7 +78,7 @@ struct MemoCardView: View {
     private var metadataRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                if let category = item.category {
+                if let category {
                     memoBadge(category.displayName, systemImage: category.systemImage, tint: category.tint)
                 }
 

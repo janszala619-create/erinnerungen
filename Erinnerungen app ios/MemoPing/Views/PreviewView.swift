@@ -6,6 +6,7 @@ import UIKit
 
 struct PreviewView: View {
     @Environment(\.modelContext) private var modelContext
+    @Query(sort: \MemoCategoryItem.sortOrder) private var categories: [MemoCategoryItem]
 
     @StateObject private var viewModel: PreviewViewModel
     @State private var selectedPhotoItems: [PhotosPickerItem] = []
@@ -249,7 +250,7 @@ struct PreviewView: View {
 
     private var organizationSection: some View {
         Section("Einordnung") {
-            CategoryPickerView(selection: $viewModel.category)
+            CategoryPickerView(selectionRawValue: $viewModel.categoryRawValue, categories: categories)
             PriorityPickerView(selection: $viewModel.priority)
         }
     }

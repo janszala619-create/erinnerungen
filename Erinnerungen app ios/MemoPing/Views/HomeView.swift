@@ -4,6 +4,7 @@ import SwiftUI
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \MemoItem.createdAt, order: .reverse) private var items: [MemoItem]
+    @Query(sort: \MemoCategoryItem.sortOrder) private var categories: [MemoCategoryItem]
 
     @StateObject private var viewModel = HomeViewModel()
     @State private var isCapturePresented = false
@@ -46,6 +47,9 @@ struct HomeView: View {
         .task(id: reminderPlanSignature) {
             await planSyncedRemindersIfNeeded()
         }
+        .task {
+            seedDefaultCategoriesIfNeeded()
+        }
         .task(id: widgetSnapshotSignature) {
             MemoWidgetSnapshotUpdater.update(from: items)
         }
@@ -53,7 +57,7 @@ struct HomeView: View {
 
     @ViewBuilder
     private var content: some View {
-        let groups = viewModel.sectionGroups(from: items)
+        let groups = viewModel.sectionGroups(from: items, categories: categories)
 
         if items.isEmpty {
             ContentUnavailableView(
@@ -75,7 +79,7 @@ struct HomeView: View {
                             NavigationLink {
                                 DetailView(item: item)
                             } label: {
-                                MemoCardView(item: item) {
+                                MemoCardView(item: item, category: category(for: item)) {
                                     toggleCompleted(item)
                                 }
                             }
@@ -107,27 +111,27 @@ struct HomeView: View {
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .animation(.snappy(duration: 0.2), value: viewModel.searchText)
-            .animation(.snappy(duration: 0.2), value: viewModel.selectedCategory)
+            .animation(.snappy(duration: 0.2), value: viewModel.selectedCategoryRawValue)
         }
     }
 
     private var categoryFilterMenu: some View {
         Menu {
             Button {
-                viewModel.selectedCategory = nil
+                viewModel.selectedCategoryRawValue = nil
             } label: {
-                Label("Alle Kategorien", systemImage: viewModel.selectedCategory == nil ? "checkmark" : "line.3.horizontal.decrease.circle")
+                Label("Alle Kategorien", systemImage: viewModel.selectedCategoryRawValue == nil ? "checkmark" : "line.3.horizontal.decrease.circle")
             }
 
-            ForEach(MemoCategory.allCases) { category in
+            ForEach(categories, id: \.id) { category in
                 Button {
-                    viewModel.selectedCategory = category
+                    viewModel.selectedCategoryRawValue = category.id
                 } label: {
-                    Label(category.displayName, systemImage: viewModel.selectedCategory == category ? "checkmark" : category.systemImage)
+                    Label(category.displayName, systemImage: viewModel.selectedCategoryRawValue == category.id ? "checkmark" : category.systemImage)
                 }
             }
         } label: {
-            Label(viewModel.selectedCategory?.displayName ?? "Filter", systemImage: "line.3.horizontal.decrease.circle")
+            Label(selectedCategoryTitle, systemImage: "line.3.horizontal.decrease.circle")
         }
         .accessibilityLabel("Kategorie filtern")
     }
@@ -160,8 +164,28 @@ struct HomeView: View {
             .joined(separator: "|")
     }
 
+    private var selectedCategoryTitle: String {
+        guard let rawValue = viewModel.selectedCategoryRawValue else {
+            return "Filter"
+        }
+
+        return MemoCategoryItem.item(for: rawValue, in: categories)?.displayName ?? "Filter"
+    }
+
     private func deleteItems(at offsets: IndexSet, in sectionItems: [MemoItem]) {
         offsets.map { sectionItems[$0] }.forEach(delete)
+    }
+
+    private func category(for item: MemoItem) -> MemoCategoryItem? {
+        MemoCategoryItem.item(for: item.categoryRawValue, in: categories)
+    }
+
+    private func seedDefaultCategoriesIfNeeded() {
+        do {
+            try MemoCategoryItem.seedDefaultsIfNeeded(in: modelContext)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     private func toggleCompleted(_ item: MemoItem) {
@@ -223,5 +247,5 @@ struct HomeView: View {
 
 #Preview {
     HomeView()
-        .modelContainer(for: MemoItem.self, inMemory: true)
+        .modelContainer(for: [MemoItem.self, MemoCategoryItem.self], inMemory: true)
 }

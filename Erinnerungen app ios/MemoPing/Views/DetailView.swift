@@ -13,6 +13,7 @@ struct DetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
+    @Query(sort: \MemoCategoryItem.sortOrder) private var categories: [MemoCategoryItem]
 
     @Bindable var item: MemoItem
 
@@ -97,11 +98,11 @@ struct DetailView: View {
         GroupBox {
             VStack(alignment: .leading, spacing: 14) {
                 if isEditing {
-                    CategoryPickerView(selection: categoryBinding)
+                    CategoryPickerView(selectionRawValue: categoryRawValueBinding, categories: categories)
                     PriorityPickerView(selection: priorityBinding)
                 } else {
                     HStack {
-                        if let category = item.category {
+                        if let category = MemoCategoryItem.item(for: item.categoryRawValue, in: categories) {
                             Label(category.displayName, systemImage: category.systemImage)
                                 .foregroundStyle(category.tint)
                         } else {
@@ -305,11 +306,11 @@ struct DetailView: View {
         }
     }
 
-    private var categoryBinding: Binding<MemoCategory?> {
+    private var categoryRawValueBinding: Binding<String?> {
         Binding(
-            get: { item.category },
+            get: { item.categoryRawValue },
             set: {
-                item.category = $0
+                item.categoryRawValue = $0
                 item.updatedAt = Date()
             }
         )
