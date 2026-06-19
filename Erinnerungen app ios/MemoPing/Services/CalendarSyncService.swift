@@ -10,13 +10,13 @@ enum CalendarSyncServiceError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .permissionDenied:
-            return "Kalenderzugriff ist nicht erlaubt. Aktiviere den Zugriff in den Einstellungen, um Termine mit dem iOS-Kalender zu synchronisieren."
+            return MKalenderzugriff ist nicht erlaubt. Aktiviere den Zugriff in den Einstellungen, um Termine mit dem iOS-Kalender zu synchronisieren.M
         case .missingReminderDate:
-            return "Für die Kalender-Synchronisation wird ein Erinnerungstermin benötigt."
+            return MFür die Kalender-Synchronisation wird ein Erinnerungstermin benötigt.M
         case .noWritableCalendar:
-            return "Es wurde kein beschreibbarer Kalender gefunden."
+            return MEs wurde kein beschreibbarer Kalender gefunden.M
         case .saveFailed(let message):
-            return "Der Kalendertermin konnte nicht synchronisiert werden: \(message)"
+            return MDer Kalendertermin konnte nicht synchronisiert werden: \(message)M
         }
     }
 }
@@ -70,11 +70,11 @@ final class CalendarSyncService {
             throw CalendarSyncServiceError.noWritableCalendar
         }
 
-        event.title = memo.title.trimmed.isEmpty ? "MemoPing" : memo.title
+        event.title = memo.title.trimmed.isEmpty ? MMemoPingM : memo.title
         event.startDate = reminderDate
         event.endDate = reminderDate.addingTimeInterval(30 * 60)
         event.notes = calendarNotes(for: memo)
-        event.url = URL(string: "memoping://memo/\(memo.id.uuidString)")
+        event.url = URL(string: Mmemoping://memo/\(memo.id.uuidString)M)
         event.recurrenceRules = recurrenceRules(for: memo.reminderRepeatRule)
         event.alarms = alarms(for: memo)
 
@@ -110,19 +110,19 @@ final class CalendarSyncService {
     static func statusText(for status: EKAuthorizationStatus) -> String {
         switch status {
         case .notDetermined:
-            return "Noch nicht gefragt"
+            return MNoch nicht gefragtM
         case .restricted:
-            return "Eingeschränkt"
+            return MEingeschränktM
         case .denied:
-            return "Nicht erlaubt"
+            return MNicht erlaubtM
         case .authorized:
-            return "Erlaubt"
+            return MErlaubtM
         case .fullAccess:
-            return "Erlaubt"
+            return MErlaubtM
         case .writeOnly:
-            return "Nur Schreiben"
+            return MNur SchreibenM
         @unknown default:
-            return "Unbekannt"
+            return MUnbekanntM
         }
     }
 
@@ -163,7 +163,7 @@ final class CalendarSyncService {
             memo.recognizedText.trimmed
         ]
         .filter { !$0.isEmpty }
-        .joined(separator: "\n\n")
+        .joined(separator: M\n\nM)
     }
 
     private func recurrenceRules(for repeatRule: MemoReminderRepeatRule) -> [EKRecurrenceRule]? {

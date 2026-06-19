@@ -1,6 +1,6 @@
-# MemoPing
+# RemindlyAi
 
-MemoPing ist eine private iOS-App zum schnellen Erfassen von Notizen, Erinnerungen, Spracheingaben und Bildern. Die App ist fuer iOS 17+ ausgelegt und nutzt ausschliesslich Apple-Frameworks.
+RemindlyAi ist eine private iOS-App zum schnellen Erfassen von Notizen, Erinnerungen, Spracheingaben und Bildern. Die App ist fuer iOS 17+ ausgelegt und nutzt ausschliesslich Apple-Frameworks.
 
 ## Datenschutz
 

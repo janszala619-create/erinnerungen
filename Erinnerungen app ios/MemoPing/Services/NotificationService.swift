@@ -60,7 +60,7 @@ final class NotificationService {
 
         let mainRequest = try notificationRequest(
             identifier: memo.notificationIdentifier,
-            title: memo.title.trimmed.isEmpty ? "MemoPing" : memo.title,
+            title: memo.title.trimmed.isEmpty ? "RemindlyAi" : memo.title,
             body: notificationBody(for: memo),
             memo: memo,
             reminderDate: reminderDate
@@ -99,7 +99,7 @@ final class NotificationService {
         }
 
         let content = UNMutableNotificationContent()
-        content.title = "MemoPing Test"
+        content.title = "RemindlyAi Test"
         content.body = "Diese Test-Erinnerung wurde lokal in 10 Sekunden geplant."
         content.sound = .default
         content.userInfo = ["debug": true]
@@ -146,7 +146,7 @@ final class NotificationService {
     }
 
     private func notificationBody(for memo: MemoItem) -> String {
-        let text = memo.previewText.trimmed.isEmpty ? "Erinnerung aus MemoPing" : memo.previewText.trimmed
+        let text = memo.previewText.trimmed.isEmpty ? "Erinnerung aus RemindlyAi" : memo.previewText.trimmed
 
         guard text.count > 120 else {
             return text
@@ -188,7 +188,7 @@ final class NotificationService {
             throw NotificationServiceError.leadDateInPast
         }
 
-        let title = memo.title.trimmed.isEmpty ? "MemoPing Erinnerung" : "Bald: \(memo.title)"
+        let title = memo.title.trimmed.isEmpty ? "RemindlyAi Erinnerung" : "Bald: \(memo.title)"
         let body = "\(leadTime.shortDisplayName): \(notificationBody(for: memo))"
 
         return try notificationRequest(

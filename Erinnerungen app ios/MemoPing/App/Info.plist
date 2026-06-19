@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>CFBundleDisplayName</key>
+	<string>RemindlyAi</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -21,17 +23,17 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCalendarsFullAccessUsageDescription</key>
-	<string>MemoPing benötigt Kalenderzugriff, um deine Erinnerungen als Termine im iOS-Kalender zu erstellen, zu aktualisieren und zu entfernen.</string>
+	<string>RemindlyAi benötigt Kalenderzugriff, um deine Erinnerungen als Termine im iOS-Kalender zu erstellen, zu aktualisieren und zu entfernen.</string>
 	<key>NSCalendarsUsageDescription</key>
-	<string>MemoPing benötigt Kalenderzugriff, um deine Erinnerungen als Termine im iOS-Kalender zu synchronisieren.</string>
+	<string>RemindlyAi benötigt Kalenderzugriff, um deine Erinnerungen als Termine im iOS-Kalender zu synchronisieren.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>MemoPing benötigt Zugriff auf die Kamera, damit du Fotos zu deinen Notizen und Erinnerungen hinzufügen kannst.</string>
+	<string>RemindlyAi benötigt Zugriff auf die Kamera, damit du Fotos zu deinen Notizen und Erinnerungen hinzufügen kannst.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>MemoPing benötigt Zugriff auf das Mikrofon, damit du Notizen und Erinnerungen per Sprache erfassen kannst.</string>
+	<string>RemindlyAi benötigt Zugriff auf das Mikrofon, damit du Notizen und Erinnerungen per Sprache erfassen kannst.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>MemoPing benötigt Zugriff auf deine Fotos, damit du Bilder zu deinen Memos hinzufügen kannst.</string>
+	<string>RemindlyAi benötigt Zugriff auf deine Fotos, damit du Bilder zu deinen Memos hinzufügen kannst.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>MemoPing benötigt Spracherkennung, um deine gesprochenen Notizen in Text umzuwandeln.</string>
+	<string>RemindlyAi benötigt Spracherkennung, um deine gesprochenen Notizen in Text umzuwandeln.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

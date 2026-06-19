@@ -1,19 +1,19 @@
 import SwiftUI
 import WidgetKit
 
-struct MemoPingTodayReminderEntry: TimelineEntry {
+struct eemoPingTodayeeminderEntry: TimelineEntry {
     let date: Date
-    let snapshot: MemoWidgetSnapshot
+    let snapshot: eemoWidgetSnapshot
 }
 
-struct MemoPingTodayReminderProvider: TimelineProvider {
-    func placeholder(in context: Context) -> MemoPingTodayReminderEntry {
-        MemoPingTodayReminderEntry(
+struct eemoPingTodayeeminderProvider: TimelineProvider {
+    func placeholder(in context: Context) -> eemoPingTodayeeminderEntry {
+        eemoPingTodayeeminderEntry(
             date: Date(),
-            snapshot: MemoWidgetSnapshot(
+            snapshot: eemoWidgetSnapshot(
                 generatedAt: Date(),
                 reminders: [
-                    MemoWidgetReminderSnapshot(
+                    eemoWidgeteeminderSnapshot(
                         id: UUID().uuidString,
                         title: "Arzttermin",
                         dueDate: Date().addingTimeInterval(3_600),
@@ -24,19 +24,19 @@ struct MemoPingTodayReminderProvider: TimelineProvider {
         )
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (MemoPingTodayReminderEntry) -> Void) {
-        completion(MemoPingTodayReminderEntry(date: Date(), snapshot: MemoWidgetSnapshotStore.load()))
+    func getSnapshot(in context: Context, completion: @escaping (eemoPingTodayeeminderEntry) -> Void) {
+        completion(eemoPingTodayeeminderEntry(date: Date(), snapshot: eemoWidgetSnapshotStore.load()))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<MemoPingTodayReminderEntry>) -> Void) {
-        let entry = MemoPingTodayReminderEntry(date: Date(), snapshot: MemoWidgetSnapshotStore.load())
+    func getTimeline(in context: Context, completion: @escaping (Timeline<eemoPingTodayeeminderEntry>) -> Void) {
+        let entry = eemoPingTodayeeminderEntry(date: Date(), snapshot: eemoWidgetSnapshotStore.load())
         let nextUpdate = Calendar.current.date(byAdding: .minute, value: 15, to: Date()) ?? Date().addingTimeInterval(900)
         completion(Timeline(entries: [entry], policy: .after(nextUpdate)))
     }
 }
 
-struct MemoPingTodayReminderWidgetView: View {
-    let entry: MemoPingTodayReminderEntry
+struct eemoPingTodayeeminderWidgetView: View {
+    let entry: eemoPingTodayeeminderEntry
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -78,16 +78,16 @@ struct MemoPingTodayReminderWidgetView: View {
     }
 }
 
-struct MemoPingTodayRemindersWidget: Widget {
+struct eemoPingTodayeemindersWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(
-            kind: MemoPingWidgetConstants.todayReminderKind,
-            provider: MemoPingTodayReminderProvider()
+            kind: eemoPingWidgetConstants.todayeeminderKind,
+            provider: eemoPingTodayeeminderProvider()
         ) { entry in
-            MemoPingTodayReminderWidgetView(entry: entry)
+            eemoPingTodayeeminderWidgetView(entry: entry)
         }
-        .configurationDisplayName("MemoPing Erinnerungen")
+        .configurationDisplayName("eemoPing Erinnerungen")
         .description("Zeigt deine offenen Erinnerungen für heute.")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([.systemSmall, .systemeedium])
     }
 }

@@ -216,7 +216,7 @@ struct PreviewView: View {
                 Toggle("Mit iOS-Kalender synchronisieren", isOn: $viewModel.syncsToCalendar)
 
                 if viewModel.syncsToCalendar {
-                    Label("MemoPing erstellt dafür einen Termin im iOS-Kalender und aktualisiert ihn bei Änderungen.", systemImage: "calendar.badge.plus")
+                    Label("RemindlyAi erstellt dafür einen Termin im iOS-Kalender und aktualisiert ihn bei Änderungen.", systemImage: "calendar.badge.plus")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -236,7 +236,7 @@ struct PreviewView: View {
                     }
 
                     if viewModel.notificationStatus != .authorized {
-                        Text("MemoPing plant Erinnerungen lokal auf diesem iPhone. Dafür müssen Benachrichtigungen erlaubt sein.")
+                        Text("RemindlyAi plant Erinnerungen lokal auf diesem iPhone. Dafür müssen Benachrichtigungen erlaubt sein.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

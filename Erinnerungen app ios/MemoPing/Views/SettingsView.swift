@@ -62,7 +62,7 @@ struct SettingsView: View {
                         .foregroundStyle(iCloudState == .available ? Color.green : Color.secondary)
                 }
 
-                Text("MemoPing synchronisiert Memos über iCloud, wenn iCloud auf diesem Gerät aktiviert ist.")
+                Text("RemindlyAi synchronisiert Memos über iCloud, wenn iCloud auf diesem Gerät aktiviert ist.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -85,7 +85,7 @@ struct SettingsView: View {
                         .foregroundStyle(calendarStatusAllowsSync ? Color.green : Color.secondary)
                 }
 
-                Text("MemoPing kann Erinnerungen als Termine im iOS-Kalender erstellen, aktualisieren und beim Löschen wieder entfernen.")
+                Text("RemindlyAi kann Erinnerungen als Termine im iOS-Kalender erstellen, aktualisieren und beim Löschen wieder entfernen.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
@@ -98,7 +98,7 @@ struct SettingsView: View {
             }
 
             Section("Datenschutz") {
-                Label("Die Synchronisation läuft über Apples iCloud/CloudKit. MemoPing verwendet keinen eigenen Server.", systemImage: "lock")
+                Label("Die Synchronisation läuft über Apples iCloud/CloudKit. RemindlyAi verwendet keinen eigenen Server.", systemImage: "lock")
                 Text("Spracherkennung wird über iOS bereitgestellt. Bilder bleiben in dieser Version als lokale Dateien auf dem jeweiligen Gerät gespeichert.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -148,7 +148,7 @@ struct SettingsView: View {
 
             Section("App-Info") {
                 HStack {
-                    Text("MemoPing")
+                    Text("RemindlyAi")
                     Spacer()
                     Text("Version 1.0")
                         .foregroundStyle(.secondary)
@@ -222,7 +222,7 @@ struct SettingsView: View {
                 refreshCalendarStatus()
 
                 if !granted {
-                    errorMessage = "Kalenderzugriff wurde nicht erlaubt. Erinnerungen bleiben trotzdem lokal in MemoPing verfügbar."
+                    errorMessage = "Kalenderzugriff wurde nicht erlaubt. Erinnerungen bleiben trotzdem lokal in RemindlyAi verfügbar."
                 }
             } catch {
                 refreshCalendarStatus()

@@ -24,7 +24,7 @@ struct HomeView: View {
             }
             .padding(.bottom, 22)
         }
-        .navigationTitle("MemoPing")
+        .navigationTitle("RemindlyAi")
         .searchable(text: $viewModel.searchText, prompt: "Suchen")
         .background(Color(.systemGroupedBackground))
         .toolbar {
