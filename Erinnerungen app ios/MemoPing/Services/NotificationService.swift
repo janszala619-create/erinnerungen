@@ -5,6 +5,7 @@ enum NotificationServiceError: LocalizedError {
     case permissionDenied
     case missingReminderDate
     case dateInPast
+    case leadDateInPast
     case schedulingFailed(String)
 
     var errorDescription: String? {
@@ -15,6 +16,8 @@ enum NotificationServiceError: LocalizedError {
             return "Bitte wähle ein Datum und eine Uhrzeit für die Erinnerung."
         case .dateInPast:
             return "Der Erinnerungstermin muss in der Zukunft liegen."
+        case .leadDateInPast:
+            return "Die Vorab-Erinnerung liegt bereits in der Vergangenheit. Wähle eine kürzere Vorankündigung oder einen späteren Termin."
         case .schedulingFailed(let message):
             return "Die Erinnerung konnte nicht geplant werden: \(message)"
         }
@@ -55,23 +58,28 @@ final class NotificationService {
             throw NotificationServiceError.permissionDenied
         }
 
-        let content = UNMutableNotificationContent()
-        content.title = memo.title.trimmed.isEmpty ? "MemoPing" : memo.title
-        content.body = notificationBody(for: memo)
-        content.sound = .default
-        content.userInfo = ["memoID": memo.id.uuidString]
+        let mainRequest = try notificationRequest(
+            identifier: memo.notificationIdentifier,
+            title: memo.title.trimmed.isEmpty ? "MemoPing" : memo.title,
+            body: notificationBody(for: memo),
+            memo: memo,
+            reminderDate: reminderDate
+        )
 
-        let trigger = calendarTrigger(for: memo, reminderDate: reminderDate)
-        guard trigger.nextTriggerDate() != nil else {
+        let leadRequest = try leadNotificationRequest(for: memo, reminderDate: reminderDate)
+        let requests = [mainRequest, leadRequest].compactMap { $0 }
+
+        guard !requests.isEmpty else {
             throw NotificationServiceError.schedulingFailed("Für diese Wiederholung konnte kein nächster Termin ermittelt werden.")
         }
 
-        let request = UNNotificationRequest(identifier: memo.id.uuidString, content: content, trigger: trigger)
-
         cancelReminder(for: memo)
         do {
-            try await center.add(request)
+            for request in requests {
+                try await center.add(request)
+            }
         } catch {
+            removeNotifications(for: memo.id)
             throw NotificationServiceError.schedulingFailed(error.localizedDescription)
         }
     }
@@ -81,9 +89,7 @@ final class NotificationService {
     }
 
     func cancelReminder(with id: UUID) {
-        let identifier = id.uuidString
-        center.removePendingNotificationRequests(withIdentifiers: [identifier])
-        center.removeDeliveredNotifications(withIdentifiers: [identifier])
+        removeNotifications(for: id)
     }
 
     #if DEBUG
@@ -148,6 +154,56 @@ final class NotificationService {
 
         let endIndex = text.index(text.startIndex, offsetBy: 120)
         return String(text[..<endIndex]) + "..."
+    }
+
+    private func notificationRequest(
+        identifier: String,
+        title: String,
+        body: String,
+        memo: MemoItem,
+        reminderDate: Date
+    ) throws -> UNNotificationRequest {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        content.userInfo = ["memoID": memo.id.uuidString]
+
+        let trigger = calendarTrigger(for: memo, reminderDate: reminderDate)
+        guard trigger.nextTriggerDate() != nil else {
+            throw NotificationServiceError.schedulingFailed("Für diese Wiederholung konnte kein nächster Termin ermittelt werden.")
+        }
+
+        return UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+    }
+
+    private func leadNotificationRequest(for memo: MemoItem, reminderDate: Date) throws -> UNNotificationRequest? {
+        let leadTime = memo.reminderLeadTime
+        guard leadTime.hasLeadNotification else {
+            return nil
+        }
+
+        let leadDate = reminderDate.addingTimeInterval(-leadTime.timeInterval)
+        if !memo.reminderRepeatRule.isRepeating && leadDate <= Date() {
+            throw NotificationServiceError.leadDateInPast
+        }
+
+        let title = memo.title.trimmed.isEmpty ? "MemoPing Erinnerung" : "Bald: \(memo.title)"
+        let body = "\(leadTime.shortDisplayName): \(notificationBody(for: memo))"
+
+        return try notificationRequest(
+            identifier: memo.leadNotificationIdentifier,
+            title: title,
+            body: body,
+            memo: memo,
+            reminderDate: leadDate
+        )
+    }
+
+    private func removeNotifications(for id: UUID) {
+        let identifiers = [id.uuidString, "\(id.uuidString)-lead"]
+        center.removePendingNotificationRequests(withIdentifiers: identifiers)
+        center.removeDeliveredNotifications(withIdentifiers: identifiers)
     }
 
     private func calendarTrigger(for memo: MemoItem, reminderDate: Date) -> UNCalendarNotificationTrigger {

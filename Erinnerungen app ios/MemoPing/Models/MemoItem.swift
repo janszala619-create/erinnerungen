@@ -45,6 +45,92 @@ enum MemoReminderRepeatRule: String, CaseIterable, Codable, Identifiable {
     }
 }
 
+enum MemoReminderLeadTime: String, CaseIterable, Codable, Identifiable {
+    case none
+    case minutes15
+    case minutes30
+    case hour1
+    case hours5
+    case day1
+    case week1
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .none:
+            return "Keine"
+        case .minutes15:
+            return "15 Minuten vorher"
+        case .minutes30:
+            return "30 Minuten vorher"
+        case .hour1:
+            return "1 Stunde vorher"
+        case .hours5:
+            return "5 Stunden vorher"
+        case .day1:
+            return "1 Tag vorher"
+        case .week1:
+            return "1 Woche vorher"
+        }
+    }
+
+    var shortDisplayName: String {
+        switch self {
+        case .none:
+            return "Keine"
+        case .minutes15:
+            return "15 Min. vorher"
+        case .minutes30:
+            return "30 Min. vorher"
+        case .hour1:
+            return "1 Std. vorher"
+        case .hours5:
+            return "5 Std. vorher"
+        case .day1:
+            return "1 Tag vorher"
+        case .week1:
+            return "1 Woche vorher"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .none:
+            return "bell"
+        case .minutes15, .minutes30:
+            return "clock"
+        case .hour1, .hours5:
+            return "clock"
+        case .day1, .week1:
+            return "calendar"
+        }
+    }
+
+    var timeInterval: TimeInterval {
+        switch self {
+        case .none:
+            return 0
+        case .minutes15:
+            return 15 * 60
+        case .minutes30:
+            return 30 * 60
+        case .hour1:
+            return 60 * 60
+        case .hours5:
+            return 5 * 60 * 60
+        case .day1:
+            return 24 * 60 * 60
+        case .week1:
+            return 7 * 24 * 60 * 60
+        }
+    }
+
+    var hasLeadNotification: Bool {
+        self != .none
+    }
+}
+
 @Model
 final class MemoItem {
     var id: UUID = UUID()
@@ -56,6 +142,7 @@ final class MemoItem {
     var reminderDate: Date?
     var hasReminder: Bool = false
     var reminderRepeatRawValue: String? = MemoReminderRepeatRule.none.rawValue
+    var reminderLeadTimeRawValue: String? = MemoReminderLeadTime.none.rawValue
     var isCompleted: Bool = false
     var priorityRawValue: String = MemoPriority.normal.rawValue
     var categoryRawValue: String?
@@ -76,6 +163,7 @@ final class MemoItem {
         reminderDate: Date? = nil,
         hasReminder: Bool = false,
         reminderRepeatRule: MemoReminderRepeatRule = .none,
+        reminderLeadTime: MemoReminderLeadTime = .none,
         isCompleted: Bool = false,
         priority: MemoPriority = .normal,
         category: MemoCategory? = nil,
@@ -95,6 +183,7 @@ final class MemoItem {
         self.reminderDate = reminderDate
         self.hasReminder = hasReminder
         self.reminderRepeatRawValue = reminderRepeatRule.rawValue
+        self.reminderLeadTimeRawValue = reminderLeadTime.rawValue
         self.isCompleted = isCompleted
         self.priorityRawValue = priority.rawValue
         self.categoryRawValue = category?.rawValue
@@ -130,6 +219,10 @@ extension MemoItem {
         id.uuidString
     }
 
+    var leadNotificationIdentifier: String {
+        "\(id.uuidString)-lead"
+    }
+
     var reminderRepeatRule: MemoReminderRepeatRule {
         get {
             guard let reminderRepeatRawValue else {
@@ -139,6 +232,17 @@ extension MemoItem {
             return MemoReminderRepeatRule(rawValue: reminderRepeatRawValue) ?? .none
         }
         set { reminderRepeatRawValue = newValue.rawValue }
+    }
+
+    var reminderLeadTime: MemoReminderLeadTime {
+        get {
+            guard let reminderLeadTimeRawValue else {
+                return .none
+            }
+
+            return MemoReminderLeadTime(rawValue: reminderLeadTimeRawValue) ?? .none
+        }
+        set { reminderLeadTimeRawValue = newValue.rawValue }
     }
 
     var previewText: String {

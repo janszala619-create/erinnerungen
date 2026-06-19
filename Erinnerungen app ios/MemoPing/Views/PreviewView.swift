@@ -205,6 +205,13 @@ struct PreviewView: View {
                     }
                 }
 
+                Picker("Vorher erinnern", selection: $viewModel.reminderLeadTime) {
+                    ForEach(MemoReminderLeadTime.allCases) { leadTime in
+                        Label(leadTime.displayName, systemImage: leadTime.systemImage)
+                            .tag(leadTime)
+                    }
+                }
+
                 if let reminderValidationMessage = viewModel.reminderValidationMessage {
                     Label(reminderValidationMessage, systemImage: "exclamationmark.triangle")
                         .font(.caption)

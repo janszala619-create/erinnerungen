@@ -142,6 +142,13 @@ struct DetailView: View {
                                     .tag(repeatRule)
                             }
                         }
+
+                        Picker("Vorher erinnern", selection: reminderLeadTimeBinding) {
+                            ForEach(MemoReminderLeadTime.allCases) { leadTime in
+                                Label(leadTime.displayName, systemImage: leadTime.systemImage)
+                                    .tag(leadTime)
+                            }
+                        }
                     }
                 } else if item.hasReminder, let reminderDate = item.reminderDate {
                     Label("Erinnerung aktiv", systemImage: "bell.fill")
@@ -153,6 +160,12 @@ struct DetailView: View {
                     Label(item.reminderRepeatRule.displayName, systemImage: item.reminderRepeatRule.systemImage)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+
+                    if item.reminderLeadTime.hasLeadNotification {
+                        Label(item.reminderLeadTime.shortDisplayName, systemImage: item.reminderLeadTime.systemImage)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 } else {
                     Label("Keine Erinnerung", systemImage: "bell.slash")
                         .foregroundStyle(.secondary)
@@ -325,6 +338,7 @@ struct DetailView: View {
 
                 if !isEnabled {
                     item.reminderRepeatRule = .none
+                    item.reminderLeadTime = .none
                 }
             }
         )
@@ -346,6 +360,16 @@ struct DetailView: View {
             get: { item.reminderRepeatRule },
             set: {
                 item.reminderRepeatRule = $0
+                item.updatedAt = Date()
+            }
+        )
+    }
+
+    private var reminderLeadTimeBinding: Binding<MemoReminderLeadTime> {
+        Binding(
+            get: { item.reminderLeadTime },
+            set: {
+                item.reminderLeadTime = $0
                 item.updatedAt = Date()
             }
         )
@@ -460,6 +484,7 @@ struct DetailView: View {
         item.hasReminder = false
         item.reminderDate = nil
         item.reminderRepeatRule = .none
+        item.reminderLeadTime = .none
         item.updatedAt = Date()
         NotificationService.shared.cancelReminder(for: item)
 
@@ -503,11 +528,13 @@ struct DetailView: View {
     private func postponeReminder(to date: Date) {
         let previousDate = item.reminderDate
         let previousRepeatRule = item.reminderRepeatRule
+        let previousLeadTime = item.reminderLeadTime
 
         item.hasReminder = true
         item.isCompleted = false
         item.reminderDate = max(date, Date().addingTimeInterval(60))
         item.reminderRepeatRule = .none
+        item.reminderLeadTime = .none
         item.updatedAt = Date()
 
         Task { @MainActor in
@@ -522,6 +549,7 @@ struct DetailView: View {
             } catch {
                 item.reminderDate = previousDate
                 item.reminderRepeatRule = previousRepeatRule
+                item.reminderLeadTime = previousLeadTime
                 item.updatedAt = Date()
                 errorMessage = error.localizedDescription
             }

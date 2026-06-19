@@ -89,6 +89,10 @@ struct MemoCardView: View {
                     if item.reminderRepeatRule.isRepeating {
                         memoBadge(item.reminderRepeatRule.displayName, systemImage: item.reminderRepeatRule.systemImage, tint: .secondary)
                     }
+
+                    if item.reminderLeadTime.hasLeadNotification {
+                        memoBadge(item.reminderLeadTime.shortDisplayName, systemImage: item.reminderLeadTime.systemImage, tint: .secondary)
+                    }
                 }
 
                 if !item.detectedPhoneNumbers.isEmpty {

@@ -80,6 +80,7 @@ final class PreviewViewModel: ObservableObject {
     @Published var reminderDate: Date?
     @Published var hasReminder = false
     @Published var reminderRepeatRule: MemoReminderRepeatRule = .none
+    @Published var reminderLeadTime: MemoReminderLeadTime = .none
     @Published var category: MemoCategory?
     @Published var priority: MemoPriority = .normal
     @Published private(set) var imageAttachments: [PreviewImageAttachment] = []
@@ -160,6 +161,12 @@ final class PreviewViewModel: ObservableObject {
 
         guard reminderDate > Date() else {
             return "Der Erinnerungstermin muss in der Zukunft liegen."
+        }
+
+        if reminderRepeatRule == .none,
+           reminderLeadTime.hasLeadNotification,
+           reminderDate.addingTimeInterval(-reminderLeadTime.timeInterval) <= Date() {
+            return "Die Vorab-Erinnerung liegt bereits in der Vergangenheit."
         }
 
         return nil
@@ -295,6 +302,12 @@ final class PreviewViewModel: ObservableObject {
             guard let reminderDate, reminderDate > now else {
                 throw PreviewValidationError.pastReminderDate
             }
+
+            if reminderRepeatRule == .none,
+               reminderLeadTime.hasLeadNotification,
+               reminderDate.addingTimeInterval(-reminderLeadTime.timeInterval) <= now {
+                throw NotificationServiceError.leadDateInPast
+            }
         }
 
         let storedImageNames = imageAttachments.map(\.fileName)
@@ -308,6 +321,7 @@ final class PreviewViewModel: ObservableObject {
             reminderDate: shouldScheduleReminder ? reminderDate : nil,
             hasReminder: shouldScheduleReminder,
             reminderRepeatRule: shouldScheduleReminder ? reminderRepeatRule : .none,
+            reminderLeadTime: shouldScheduleReminder ? reminderLeadTime : .none,
             priority: priority,
             category: category,
             sourceType: sourceType,
