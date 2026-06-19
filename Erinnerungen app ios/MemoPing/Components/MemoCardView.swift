@@ -24,7 +24,7 @@ struct MemoCardView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.title)
                         .font(.title3.weight(.bold))
-                        .foregroundStyle(item.isCompleted ? .secondary : .white)
+                        .foregroundStyle(Color.white.opacity(item.isCompleted ? 0.45 : 1.0))
                         .strikethrough(item.isCompleted)
                         .lineLimit(2)
 
