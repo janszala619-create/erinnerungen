@@ -24,6 +24,12 @@ struct PreviewView: View {
 
     var body: some View {
         Form {
+            Section {
+                previewHero
+            }
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 4, trailing: 20))
+
             contentSection
             reminderSection
             photoQuestionSection
@@ -32,19 +38,10 @@ struct PreviewView: View {
             organizationSection
             saveSection
         }
+        .formStyle(.grouped)
         .scrollContentBackground(.hidden)
-        .background(
-            LinearGradient(
-                colors: [
-                    Color(red: 0.03, green: 0.03, blue: 0.06),
-                    Color(red: 0.06, green: 0.04, blue: 0.10),
-                    Color(red: 0.02, green: 0.02, blue: 0.04)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
-        .tint(Color(red: 0.56, green: 0.34, blue: 1.0))
+        .background(RemindlyStyle.backgroundGradient.ignoresSafeArea())
+        .tint(RemindlyStyle.accent)
         .preferredColorScheme(.dark)
         .scrollDismissesKeyboard(.interactively)
         .onChange(of: selectedPhotoItems) { _, newItems in
@@ -85,6 +82,30 @@ struct PreviewView: View {
         }
     }
 
+    private var previewHero: some View {
+        HStack(spacing: 14) {
+            Image(systemName: viewModel.hasReminder ? "bell.badge" : "doc.text")
+                .font(.title3.weight(.bold))
+                .foregroundStyle(.white)
+                .frame(width: 46, height: 46)
+                .background(viewModel.hasReminder ? RemindlyStyle.accentGradient : RemindlyStyle.warmGradient, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(viewModel.hasReminder ? "Neue Erinnerung" : "Neue Notiz")
+                    .font(.title2.weight(.black))
+                    .foregroundStyle(.white)
+
+                Text(viewModel.canSave ? "Bereit zum Speichern" : "Noch unvollständig")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(viewModel.canSave ? RemindlyStyle.success : RemindlyStyle.warning)
+            }
+
+            Spacer()
+        }
+        .padding(18)
+        .remindlyCard(radius: 30)
+    }
+
     private var contentSection: some View {
         Section("Inhalt") {
             TextField("Titel", text: $viewModel.title)
@@ -97,6 +118,9 @@ struct PreviewView: View {
 
                 TextEditor(text: $viewModel.bodyText)
                     .frame(minHeight: 120)
+                    .scrollContentBackground(.hidden)
+                    .padding(8)
+                    .background(RemindlyStyle.elevatedFill, in: RoundedRectangle(cornerRadius: RemindlyStyle.controlRadius, style: .continuous))
             }
 
             if !viewModel.recognizedText.isEmpty {
@@ -107,6 +131,9 @@ struct PreviewView: View {
 
                     TextEditor(text: $viewModel.recognizedText)
                         .frame(minHeight: 110)
+                        .scrollContentBackground(.hidden)
+                        .padding(8)
+                        .background(RemindlyStyle.elevatedFill, in: RoundedRectangle(cornerRadius: RemindlyStyle.controlRadius, style: .continuous))
                 }
             }
         }
@@ -378,7 +405,7 @@ struct PreviewView: View {
     }
 
     private var formRowBackground: Color {
-        Color.white.opacity(0.07)
+        RemindlyStyle.cardFill
     }
 
     private var reminderDateBinding: Binding<Date> {

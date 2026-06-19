@@ -35,11 +35,16 @@ struct DetailView: View {
                 detectedSection
                 actionSection
             }
-            .padding()
+            .padding(.horizontal, 24)
+            .padding(.top, 18)
+            .padding(.bottom, 32)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(RemindlyStyle.backgroundGradient.ignoresSafeArea())
+        .tint(RemindlyStyle.accent)
         .navigationTitle("Details")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarBackground(Color.black.opacity(0.36), for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(isEditing ? "Sichern" : "Bearbeiten") {
@@ -77,25 +82,61 @@ struct DetailView: View {
     }
 
     private var titleSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if isEditing {
-                TextField("Titel", text: $item.title)
-                    .font(.title2.weight(.semibold))
-                    .textFieldStyle(.roundedBorder)
-            } else {
-                Text(item.title)
-                    .font(.title2.weight(.semibold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(alignment: .top, spacing: 14) {
+                Image(systemName: item.hasReminder ? "bell.badge.fill" : "doc.text.fill")
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 48, height: 48)
+                    .background(item.hasReminder ? RemindlyStyle.accentGradient : RemindlyStyle.warmGradient, in: RoundedRectangle(cornerRadius: 17, style: .continuous))
 
-            Label(item.sourceType.displayName, systemImage: "square.and.pencil")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 8) {
+                    if isEditing {
+                        TextField("Titel", text: $item.title)
+                            .font(.title2.weight(.black))
+                            .foregroundStyle(.white)
+                            .padding(14)
+                            .background(RemindlyStyle.elevatedFill, in: RoundedRectangle(cornerRadius: RemindlyStyle.controlRadius, style: .continuous))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: RemindlyStyle.controlRadius, style: .continuous)
+                                    .strokeBorder(RemindlyStyle.border)
+                            }
+                    } else {
+                        Text(item.title)
+                            .font(.title2.weight(.black))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+
+                    HStack(spacing: 8) {
+                        statusPill(item.sourceType.displayName, systemImage: "square.and.pencil", tint: RemindlyStyle.mutedText)
+
+                        if item.isCompleted {
+                            statusPill("Erledigt", systemImage: "checkmark.circle.fill", tint: RemindlyStyle.success)
+                        } else if item.hasReminder {
+                            statusPill("Aktiv", systemImage: "bell.fill", tint: RemindlyStyle.accent)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(18)
+        .background {
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(RemindlyStyle.quietGradient)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .fill((item.hasReminder ? RemindlyStyle.accent : RemindlyStyle.pink).opacity(0.14))
+                }
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.16))
         }
     }
 
     private var organizationSection: some View {
-        GroupBox {
+        detailCard {
             VStack(alignment: .leading, spacing: 14) {
                 if isEditing {
                     CategoryPickerView(selectionRawValue: categoryRawValueBinding, categories: categories)
@@ -122,7 +163,7 @@ struct DetailView: View {
     }
 
     private var reminderSection: some View {
-        GroupBox {
+        detailCard {
             VStack(alignment: .leading, spacing: 12) {
                 Toggle("Erledigt", isOn: completedBinding)
 
@@ -155,29 +196,29 @@ struct DetailView: View {
                     }
                 } else if item.hasReminder, let reminderDate = item.reminderDate {
                     Label("Erinnerung aktiv", systemImage: "bell.fill")
-                        .foregroundStyle(.green)
+                        .foregroundStyle(RemindlyStyle.success)
 
                     Text(reminderDate.formatted(date: .abbreviated, time: .shortened))
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(RemindlyStyle.mutedText)
 
                     Label(item.reminderRepeatRule.displayName, systemImage: item.reminderRepeatRule.systemImage)
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(RemindlyStyle.mutedText)
 
                     if item.reminderLeadTime.hasLeadNotification {
                         Label(item.reminderLeadTime.shortDisplayName, systemImage: item.reminderLeadTime.systemImage)
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(RemindlyStyle.mutedText)
                     }
 
                     if item.syncsToCalendar {
                         Label("Mit iOS-Kalender synchronisiert", systemImage: "calendar.badge.checkmark")
                             .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(RemindlyStyle.mutedText)
                     }
                 } else {
                     Label("Keine Erinnerung", systemImage: "bell.slash")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(RemindlyStyle.mutedText)
                 }
             }
         }
@@ -199,6 +240,7 @@ struct DetailView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Bilder")
                     .font(.headline)
+                    .foregroundStyle(.white)
 
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), spacing: 12)], spacing: 12) {
                     ForEach(item.imageFileNames, id: \.self) { fileName in
@@ -217,7 +259,7 @@ struct DetailView: View {
                         } else {
                             Label("Bilddatei nicht gefunden", systemImage: "photo.badge.exclamationmark")
                                 .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(RemindlyStyle.mutedText)
                         }
                     }
                 }
@@ -254,63 +296,65 @@ struct DetailView: View {
     }
 
     private var actionSection: some View {
-        VStack(spacing: 12) {
-            if item.hasReminder {
-                if !item.isCompleted {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Label("Erinnerung verschieben", systemImage: "clock.arrow.circlepath")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+        detailCard {
+            VStack(spacing: 12) {
+                if item.hasReminder {
+                    if !item.isCompleted {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Erinnerung verschieben", systemImage: "clock.arrow.circlepath")
+                                .font(.subheadline)
+                                .foregroundStyle(RemindlyStyle.mutedText)
 
-                        HStack {
-                            Button("10 Min.") {
-                                snoozeReminder(by: 10 * 60)
-                            }
+                            HStack {
+                                Button("10 Min.") {
+                                    snoozeReminder(by: 10 * 60)
+                                }
 
-                            Button("1 Std.") {
-                                snoozeReminder(by: 60 * 60)
-                            }
+                                Button("1 Std.") {
+                                    snoozeReminder(by: 60 * 60)
+                                }
 
-                            Button("Morgen") {
-                                snoozeReminderUntilTomorrow()
+                                Button("Morgen") {
+                                    snoozeReminderUntilTomorrow()
+                                }
                             }
+                            .buttonStyle(.bordered)
                         }
-                        .buttonStyle(.bordered)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button {
+                        removeReminder()
+                    } label: {
+                        Label("Erinnerung entfernen", systemImage: "bell.slash")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
                 }
 
-                Button {
-                    removeReminder()
+                if item.isCompleted {
+                    Label("Erledigt", systemImage: "checkmark.circle.fill")
+                        .foregroundStyle(RemindlyStyle.success)
+                        .frame(maxWidth: .infinity)
+                } else {
+                    Button {
+                        markCompleted()
+                    } label: {
+                        Label("Als erledigt markieren", systemImage: "checkmark.circle")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                }
+
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
                 } label: {
-                    Label("Erinnerung entfernen", systemImage: "bell.slash")
+                    Label("Löschen", systemImage: "trash")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
+                .accessibilityLabel("Memo löschen")
             }
-
-            if item.isCompleted {
-                Label("Erledigt", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
-                    .frame(maxWidth: .infinity)
-            } else {
-                Button {
-                    markCompleted()
-                } label: {
-                    Label("Als erledigt markieren", systemImage: "checkmark.circle")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-            }
-
-            Button(role: .destructive) {
-                showDeleteConfirmation = true
-            } label: {
-                Label("Löschen", systemImage: "trash")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .accessibilityLabel("Memo löschen")
         }
     }
 
@@ -413,23 +457,47 @@ struct DetailView: View {
         )
     }
 
+    private func detailCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .remindlyCard()
+    }
+
+    private func statusPill(_ title: String, systemImage: String, tint: Color) -> some View {
+        Label(title, systemImage: systemImage)
+            .font(.caption.weight(.bold))
+            .foregroundStyle(tint)
+            .lineLimit(1)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(tint.opacity(0.13), in: Capsule())
+    }
+
     private func editableTextBlock(title: String, text: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.headline)
+                .foregroundStyle(.white)
 
             if isEditing {
                 TextEditor(text: text)
                     .frame(minHeight: 110)
                     .padding(8)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                    .scrollContentBackground(.hidden)
+                    .background(RemindlyStyle.cardFill, in: RoundedRectangle(cornerRadius: RemindlyStyle.controlRadius, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: RemindlyStyle.controlRadius, style: .continuous)
+                            .strokeBorder(RemindlyStyle.border)
+                    }
             } else if !text.wrappedValue.trimmed.isEmpty {
                 Text(text.wrappedValue)
+                    .foregroundStyle(.white)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)
             } else {
                 Text("Kein Text")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(RemindlyStyle.mutedText)
             }
         }
     }
@@ -440,7 +508,7 @@ struct DetailView: View {
         values: [String],
         action: ((String) -> Void)?
     ) -> some View {
-        GroupBox {
+        detailCard {
             VStack(alignment: .leading, spacing: 8) {
                 Label(title, systemImage: systemImage)
                     .font(.headline)
@@ -455,7 +523,7 @@ struct DetailView: View {
                         }
                     } else {
                         Text(value)
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(RemindlyStyle.mutedText)
                             .textSelection(.enabled)
                             .frame(maxWidth: .infinity, alignment: .leading)
                     }
@@ -472,7 +540,7 @@ struct DetailView: View {
                 .frame(maxWidth: .infinity)
                 .padding()
         }
-        .background(Color(.systemBackground))
+        .background(RemindlyStyle.backgroundGradient.ignoresSafeArea())
     }
 
     private func saveChanges() {

@@ -7,23 +7,59 @@ struct MemoCardView: View {
     var onDelete: (() -> Void)? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .top, spacing: 14) {
+        HStack(alignment: .top, spacing: 14) {
+            VStack(spacing: 8) {
                 Button {
                     onToggleCompleted?()
                 } label: {
-                    Image(systemName: item.isCompleted ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 30, weight: .semibold))
-                        .foregroundStyle(item.isCompleted ? Color.green : cardTint)
-                        .frame(width: 34, height: 34)
+                    ZStack {
+                        Circle()
+                            .strokeBorder(item.isCompleted ? RemindlyStyle.success : cardTint, lineWidth: 3)
+                            .frame(width: 34, height: 34)
+
+                        if item.isCompleted {
+                            Image(systemName: "checkmark")
+                                .font(.caption.weight(.black))
+                                .foregroundStyle(RemindlyStyle.success)
+                        }
+                    }
                 }
                 .buttonStyle(.borderless)
                 .disabled(onToggleCompleted == nil)
                 .accessibilityLabel(item.isCompleted ? "Als offen markieren" : "Als erledigt markieren")
 
-                VStack(alignment: .leading, spacing: 4) {
+                if item.hasReminder {
+                    Image(systemName: "bell.fill")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(cardTint)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    if let category {
+                        Label(category.displayName, systemImage: category.systemImage)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(category.tint)
+                            .lineLimit(1)
+                    } else {
+                        Label(item.hasReminder ? "Erinnerung" : "Notiz", systemImage: item.hasReminder ? "bell" : "doc.text")
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(cardTint)
+                    }
+
+                    Spacer(minLength: 6)
+
+                    if item.priority != .normal {
+                        Label(item.priority.displayName, systemImage: item.priority.systemImage)
+                            .font(.caption.weight(.bold))
+                            .foregroundStyle(item.priority.tint)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
                     Text(item.title)
-                        .font(.title3.weight(.bold))
+                        .font(.title3.weight(.black))
                         .foregroundStyle(Color.white.opacity(item.isCompleted ? 0.45 : 1.0))
                         .strikethrough(item.isCompleted)
                         .lineLimit(2)
@@ -34,49 +70,37 @@ struct MemoCardView: View {
                         .lineLimit(3)
                 }
 
-                Spacer(minLength: 8)
-
-                if let onDelete {
-                    Button(role: .destructive) {
-                        onDelete()
-                    } label: {
-                        Image(systemName: "trash")
-                            .font(.title3.weight(.semibold))
-                            .foregroundStyle(Color(red: 1.0, green: 0.28, blue: 0.42))
-                            .frame(width: 34, height: 34)
-                    }
-                    .buttonStyle(.borderless)
-                    .accessibilityLabel("Memo löschen")
-                }
+                metadataRow
             }
 
-            metadataRow
+            if let onDelete {
+                Button(role: .destructive) {
+                    onDelete()
+                } label: {
+                    Image(systemName: "trash")
+                        .font(.headline.weight(.semibold))
+                        .foregroundStyle(RemindlyStyle.danger)
+                        .frame(width: 34, height: 34)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Memo löschen")
+            }
         }
-        .padding(18)
-        .background(cardBackground, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+        .padding(16)
+        .background(cardBackground, in: RoundedRectangle(cornerRadius: RemindlyStyle.cardRadius, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .strokeBorder(cardTint.opacity(0.35), lineWidth: 1)
+            RoundedRectangle(cornerRadius: RemindlyStyle.cardRadius, style: .continuous)
+                .strokeBorder(cardTint.opacity(0.30), lineWidth: 1)
         }
         .overlay(alignment: .leading) {
             RoundedRectangle(cornerRadius: 3, style: .continuous)
                 .fill(cardTint)
-                .frame(width: 5)
+                .frame(width: 4)
                 .padding(.vertical, 18)
         }
         .opacity(item.isCompleted ? 0.72 : 1)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-    }
-
-    private var iconName: String {
-        if item.hasReminder {
-            return "bell.circle"
-        }
-        if !item.imageFileNames.isEmpty {
-            return "photo.circle"
-        }
-        return "note.text"
     }
 
     private var cardTint: Color {
@@ -89,35 +113,21 @@ struct MemoCardView: View {
         }
 
         if item.hasReminder {
-            return Color(red: 0.52, green: 0.30, blue: 1.0)
+            return RemindlyStyle.accent
         }
 
-        return Color(red: 1.0, green: 0.25, blue: 0.56)
+        return RemindlyStyle.pink
     }
 
     private var cardBackground: LinearGradient {
-        LinearGradient(
-            colors: [
-                cardTint.opacity(0.22),
-                Color(red: 0.10, green: 0.07, blue: 0.16).opacity(0.96),
-                Color(red: 0.06, green: 0.05, blue: 0.09).opacity(0.98)
-            ],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
-        )
+        RemindlyStyle.tintedCardGradient(cardTint)
     }
 
     private var metadataRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
-                if let category {
-                    memoBadge(category.displayName, systemImage: category.systemImage, tint: category.tint)
-                }
-
-                memoBadge(item.priority.displayName, systemImage: item.priority.systemImage, tint: item.priority.tint)
-
                 if item.hasReminder, let reminderDate = item.reminderDate {
-                    memoBadge(reminderDate.formatted(date: .abbreviated, time: .shortened), systemImage: "bell", tint: .secondary)
+                    memoBadge(reminderDate.formatted(date: .abbreviated, time: .shortened), systemImage: "calendar", tint: RemindlyStyle.cyan)
 
                     if item.reminderRepeatRule.isRepeating {
                         memoBadge(item.reminderRepeatRule.displayName, systemImage: item.reminderRepeatRule.systemImage, tint: .secondary)
@@ -129,15 +139,15 @@ struct MemoCardView: View {
                 }
 
                 if !item.detectedPhoneNumbers.isEmpty {
-                    iconBadge("phone", label: "Telefonnummer erkannt")
+                    memoBadge("Telefon", systemImage: "phone", tint: RemindlyStyle.mutedText)
                 }
 
                 if !item.detectedURLs.isEmpty {
-                    iconBadge("link", label: "Link erkannt")
+                    memoBadge("Link", systemImage: "link", tint: RemindlyStyle.mutedText)
                 }
 
                 if !item.detectedDateStrings.isEmpty {
-                    iconBadge("calendar", label: "Datum erkannt")
+                    memoBadge("Datum", systemImage: "calendar.badge.clock", tint: RemindlyStyle.mutedText)
                 }
             }
             .padding(.vertical, 1)
@@ -154,15 +164,6 @@ struct MemoCardView: View {
             .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, 8)
             .padding(.vertical, 5)
-            .background(tint.opacity(0.12), in: Capsule())
-    }
-
-    private func iconBadge(_ systemImage: String, label: String) -> some View {
-        Image(systemName: systemImage)
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(Color.white.opacity(0.7))
-            .frame(width: 26, height: 26)
-            .background(Color.white.opacity(0.10), in: Circle())
-            .accessibilityLabel(label)
+            .background(tint.opacity(0.14), in: Capsule())
     }
 }

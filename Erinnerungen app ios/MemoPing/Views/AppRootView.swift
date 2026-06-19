@@ -1,5 +1,140 @@
 import SwiftUI
 
+enum RemindlyStyle {
+    static let ink = Color(red: 0.02, green: 0.02, blue: 0.04)
+    static let surface = Color(red: 0.08, green: 0.08, blue: 0.12)
+    static let surfaceRaised = Color(red: 0.12, green: 0.11, blue: 0.18)
+    static let accent = Color(red: 0.58, green: 0.38, blue: 1.0)
+    static let cyan = Color(red: 0.18, green: 0.73, blue: 1.0)
+    static let pink = Color(red: 1.0, green: 0.24, blue: 0.58)
+    static let orange = Color(red: 1.0, green: 0.55, blue: 0.22)
+    static let success = Color(red: 0.25, green: 0.88, blue: 0.46)
+    static let warning = Color(red: 1.0, green: 0.78, blue: 0.30)
+    static let danger = Color(red: 1.0, green: 0.30, blue: 0.42)
+
+    static let cardRadius: CGFloat = 26
+    static let controlRadius: CGFloat = 18
+    static let pillRadius: CGFloat = 16
+
+    static var backgroundGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(red: 0.015, green: 0.016, blue: 0.028),
+                Color(red: 0.045, green: 0.035, blue: 0.075),
+                Color(red: 0.015, green: 0.018, blue: 0.032)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    static var accentGradient: LinearGradient {
+        LinearGradient(
+            colors: [cyan, accent, pink],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    static var warmGradient: LinearGradient {
+        LinearGradient(
+            colors: [orange, pink, accent],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    static var quietGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                surfaceRaised.opacity(0.92),
+                surface.opacity(0.88)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    static var cardFill: Color {
+        Color.white.opacity(0.085)
+    }
+
+    static var elevatedFill: Color {
+        Color.white.opacity(0.13)
+    }
+
+    static var border: Color {
+        Color.white.opacity(0.14)
+    }
+
+    static var mutedText: Color {
+        Color.white.opacity(0.64)
+    }
+
+    static var faintText: Color {
+        Color.white.opacity(0.42)
+    }
+
+    static func tintedCardGradient(_ tint: Color) -> LinearGradient {
+        LinearGradient(
+            colors: [
+                tint.opacity(0.18),
+                surfaceRaised.opacity(0.92),
+                surface.opacity(0.94)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    static func iconFill(_ tint: Color) -> LinearGradient {
+        LinearGradient(
+            colors: [tint.opacity(0.95), tint.opacity(0.42)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+}
+
+struct RemindlyGroupBoxStyle: GroupBoxStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            configuration.label
+                .font(.headline)
+                .foregroundStyle(.white)
+
+            configuration.content
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .background(RemindlyStyle.cardFill, in: RoundedRectangle(cornerRadius: RemindlyStyle.cardRadius, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: RemindlyStyle.cardRadius, style: .continuous)
+                .strokeBorder(RemindlyStyle.border)
+        }
+    }
+}
+
+struct RemindlyPressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed ? 0.97 : 1)
+            .opacity(configuration.isPressed ? 0.82 : 1)
+            .animation(.snappy(duration: 0.16), value: configuration.isPressed)
+    }
+}
+
+extension View {
+    func remindlyCard(radius: CGFloat = RemindlyStyle.cardRadius) -> some View {
+        self
+            .background(RemindlyStyle.quietGradient, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: radius, style: .continuous)
+                    .strokeBorder(RemindlyStyle.border)
+            }
+    }
+}
+
 struct AppRootView: View {
     @StateObject private var captureRequestCenter = CaptureRequestCenter.shared
 
@@ -24,6 +159,7 @@ struct AppRootView: View {
                 captureRequestCenter.isCapturePresented = false
             }
         }
+        .tint(RemindlyStyle.accent)
         .preferredColorScheme(.dark)
     }
 }

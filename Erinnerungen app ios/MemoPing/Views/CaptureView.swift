@@ -29,6 +29,8 @@ struct CaptureView: View {
             }
             .navigationTitle(previewViewModel == nil ? "Erfassen" : "Neue Erinnerung")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.black.opacity(0.36), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     if previewViewModel == nil {
@@ -45,6 +47,7 @@ struct CaptureView: View {
                 }
             }
         }
+        .tint(RemindlyStyle.accent)
         .preferredColorScheme(.dark)
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase != .active {
@@ -71,12 +74,15 @@ struct CaptureView: View {
 
     private var captureContent: some View {
         ScrollView {
-            VStack(spacing: 18) {
+            VStack(spacing: 16) {
+                captureHero
+
                 GroupBox {
                     TextEditor(text: $viewModel.inputText)
                         .frame(minHeight: 150)
                         .padding(10)
-                        .background(Color.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .scrollContentBackground(.hidden)
+                        .background(RemindlyStyle.elevatedFill, in: RoundedRectangle(cornerRadius: RemindlyStyle.controlRadius, style: .continuous))
                         .overlay {
                             if viewModel.inputText.isEmpty {
                                 Text("Notiz oder Erinnerung eingeben")
@@ -86,6 +92,10 @@ struct CaptureView: View {
                                     .padding(.leading, 16)
                                     .allowsHitTesting(false)
                             }
+                        }
+                        .overlay {
+                            RoundedRectangle(cornerRadius: RemindlyStyle.controlRadius, style: .continuous)
+                                .strokeBorder(RemindlyStyle.border)
                         }
                 } label: {
                     Label("Text eingeben", systemImage: "keyboard")
@@ -102,8 +112,9 @@ struct CaptureView: View {
                             HStack(spacing: 14) {
                                 ZStack {
                                     Circle()
-                                        .fill(viewModel.isRecording ? Color.red : Color.accentColor)
+                                        .fill(viewModel.isRecording ? RemindlyStyle.danger : RemindlyStyle.accent)
                                         .frame(width: 58, height: 58)
+                                        .shadow(color: (viewModel.isRecording ? RemindlyStyle.danger : RemindlyStyle.accent).opacity(0.28), radius: 18, y: 8)
 
                                     Image(systemName: viewModel.isRecording ? "stop.fill" : "mic.fill")
                                         .font(.title2.weight(.semibold))
@@ -116,7 +127,7 @@ struct CaptureView: View {
 
                                     Label(viewModel.speechStatusText, systemImage: viewModel.isRecording ? "waveform" : "mic")
                                         .font(.subheadline)
-                                        .foregroundStyle(viewModel.isRecording ? .red : .secondary)
+                                        .foregroundStyle(viewModel.isRecording ? RemindlyStyle.danger : RemindlyStyle.mutedText)
                                 }
 
                                 Spacer()
@@ -155,18 +166,12 @@ struct CaptureView: View {
                 .controlSize(.large)
                 .disabled(!viewModel.canContinue || viewModel.isProcessingImage)
             }
-            .padding()
+            .padding(.horizontal, 20)
+            .padding(.top, 14)
+            .padding(.bottom, 30)
         }
-        .background(
-            LinearGradient(
-                colors: [
-                    Color(red: 0.03, green: 0.03, blue: 0.06),
-                    Color(red: 0.06, green: 0.04, blue: 0.10)
-                ],
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-        )
+        .background(RemindlyStyle.backgroundGradient.ignoresSafeArea())
+        .groupBoxStyle(RemindlyGroupBoxStyle())
         .onChange(of: viewModel.inputText) { _, _ in
             viewModel.textDidChange()
         }
@@ -177,6 +182,60 @@ struct CaptureView: View {
         } message: {
             Text(viewModel.errorMessage ?? "")
         }
+    }
+
+    private var captureHero: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                Image(systemName: "sparkles")
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 40, height: 40)
+                    .background(RemindlyStyle.accentGradient, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Schnell erfassen")
+                        .font(.system(size: 30, weight: .black, design: .rounded))
+                        .foregroundStyle(.white)
+
+                    Text("Text, Sprache oder Bild")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(RemindlyStyle.mutedText)
+                }
+            }
+
+            HStack(spacing: 10) {
+                captureChip("Text", systemImage: "keyboard", isActive: !viewModel.inputText.trimmed.isEmpty)
+                captureChip("Sprache", systemImage: "mic", isActive: viewModel.isRecording)
+                captureChip("Bild", systemImage: "photo", isActive: !viewModel.imageAttachments.isEmpty)
+            }
+        }
+        .padding(18)
+        .background {
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .fill(RemindlyStyle.quietGradient)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 30, style: .continuous)
+                        .fill(RemindlyStyle.pink.opacity(0.10))
+                }
+        }
+        .overlay {
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.16))
+        }
+    }
+
+    private func captureChip(_ title: String, systemImage: String, isActive: Bool) -> some View {
+        Label(title, systemImage: systemImage)
+            .font(.caption.weight(.bold))
+            .foregroundStyle(isActive ? Color.white : RemindlyStyle.mutedText)
+            .frame(maxWidth: .infinity)
+            .frame(height: 36)
+            .background(isActive ? RemindlyStyle.accent.opacity(0.28) : Color.black.opacity(0.16), in: Capsule())
+            .overlay {
+                Capsule()
+                    .strokeBorder(isActive ? RemindlyStyle.accent.opacity(0.7) : Color.white.opacity(0.08))
+            }
     }
 
     private var imageInputSection: some View {

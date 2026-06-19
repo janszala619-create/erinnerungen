@@ -15,147 +15,112 @@ struct SettingsView: View {
     @State private var categoryEditor: CategoryEditorDraft?
 
     var body: some View {
-        Form {
-            Section("Benachrichtigungen") {
-                HStack {
-                    Label("Status", systemImage: "bell")
-                    Spacer()
-                    Text(NotificationService.statusText(for: notificationStatus))
-                        .foregroundStyle(.secondary)
-                }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                settingsHeader
 
-                Text("Erinnerungen werden als lokale iOS-Benachrichtigungen auf diesem iPhone geplant.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                settingsCard(title: "Benachrichtigungen", systemImage: "bell.badge", tint: RemindlyStyle.cyan) {
+                    statusLine(title: "Status", value: NotificationService.statusText(for: notificationStatus), tint: notificationStatus == .authorized ? RemindlyStyle.success : RemindlyStyle.warning)
 
-                if notificationStatus == .denied {
-                    Label("Benachrichtigungen sind deaktiviert.", systemImage: "bell.slash")
+                    Text("Erinnerungen werden lokal auf diesem iPhone geplant.")
                         .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                } else if notificationStatus == .notDetermined {
-                    Label("Benachrichtigungen wurden noch nicht angefragt.", systemImage: "questionmark.circle")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                        .foregroundStyle(RemindlyStyle.mutedText)
 
-                Button {
-                    requestNotifications()
-                } label: {
-                    Label("Benachrichtigungen erlauben", systemImage: "bell.badge")
-                }
-                .disabled(notificationStatus == .authorized)
-
-                #if DEBUG
-                Button {
-                    scheduleDebugReminder()
-                } label: {
-                    Label("Test-Erinnerung in 10 Sekunden", systemImage: "timer")
-                }
-                #endif
-            }
-
-            Section("iCloud Sync") {
-                HStack {
-                    Label("Status", systemImage: "icloud")
-                    Spacer()
-                    Text(iCloudState.displayText)
-                        .foregroundStyle(iCloudState == .available ? Color.green : Color.secondary)
-                }
-
-                Text("RemindlyAi synchronisiert Memos über iCloud, wenn iCloud auf diesem Gerät aktiviert ist.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Text(iCloudState.detailText)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                #if DEBUG
-                Text(ICloudSyncService.cloudKitContainerIdentifier)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                #endif
-            }
-
-            Section("iOS-Kalender") {
-                HStack {
-                    Label("Status", systemImage: "calendar")
-                    Spacer()
-                    Text(CalendarSyncService.statusText(for: calendarStatus))
-                        .foregroundStyle(calendarStatusAllowsSync ? Color.green : Color.secondary)
-                }
-
-                Text("RemindlyAi kann Erinnerungen als Termine im iOS-Kalender erstellen, aktualisieren und beim Löschen wieder entfernen.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-
-                Button {
-                    requestCalendarAccess()
-                } label: {
-                    Label("Kalenderzugriff erlauben", systemImage: "calendar.badge.plus")
-                }
-                .disabled(calendarStatusAllowsSync)
-            }
-
-            Section("Datenschutz") {
-                Label("Die Synchronisation läuft über Apples iCloud/CloudKit. RemindlyAi verwendet keinen eigenen Server.", systemImage: "lock")
-                Text("Spracherkennung wird über iOS bereitgestellt. Bilder bleiben in dieser Version als lokale Dateien auf dem jeweiligen Gerät gespeichert.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-
-            Section("Kategorien") {
-                ForEach(categories, id: \.id) { category in
-                    HStack(spacing: 12) {
-                        Label(category.displayName, systemImage: category.systemImage)
-                            .foregroundStyle(category.tint)
-
-                        if category.isDefault {
-                            Text("Standard")
-                                .font(.caption2.weight(.semibold))
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 3)
-                                .background(Color.secondary.opacity(0.12), in: Capsule())
-                        }
-
-                        Spacer()
-
-                        Button {
-                            categoryEditor = CategoryEditorDraft(category: category)
-                        } label: {
-                            Image(systemName: "pencil")
-                        }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel("Kategorie bearbeiten")
-
-                        Button(role: .destructive) {
-                            deleteCategory(category)
-                        } label: {
-                            Image(systemName: "trash")
-                        }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel("Kategorie löschen")
+                    if notificationStatus == .denied {
+                        noteLine("Benachrichtigungen sind deaktiviert.", systemImage: "bell.slash")
+                    } else if notificationStatus == .notDetermined {
+                        noteLine("Benachrichtigungen wurden noch nicht angefragt.", systemImage: "questionmark.circle")
                     }
+
+                    Button {
+                        requestNotifications()
+                    } label: {
+                        Label("Benachrichtigungen erlauben", systemImage: "bell.badge")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(notificationStatus == .authorized)
+
+                    #if DEBUG
+                    Button {
+                        scheduleDebugReminder()
+                    } label: {
+                        Label("Test-Erinnerung in 10 Sekunden", systemImage: "timer")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    #endif
                 }
 
-                Button {
-                    categoryEditor = CategoryEditorDraft()
-                } label: {
-                    Label("Kategorie hinzufügen", systemImage: "plus")
-                }
-            }
+                settingsCard(title: "Sync", systemImage: "icloud", tint: RemindlyStyle.accent) {
+                    statusLine(title: "iCloud", value: iCloudState.displayText, tint: iCloudState == .available ? RemindlyStyle.success : RemindlyStyle.warning)
 
-            Section("App-Info") {
-                HStack {
-                    Text("RemindlyAi")
-                    Spacer()
-                    Text("Version 1.0")
-                        .foregroundStyle(.secondary)
+                    Text("Memos werden über Apples iCloud/CloudKit synchronisiert, wenn iCloud auf diesem Gerät aktiv ist.")
+                        .font(.subheadline)
+                        .foregroundStyle(RemindlyStyle.mutedText)
+
+                    Text(iCloudState.detailText)
+                        .font(.caption)
+                        .foregroundStyle(RemindlyStyle.faintText)
+
+                    #if DEBUG
+                    Text(ICloudSyncService.cloudKitContainerIdentifier)
+                        .font(.caption2)
+                        .foregroundStyle(RemindlyStyle.faintText)
+                    #endif
+                }
+
+                settingsCard(title: "iOS-Kalender", systemImage: "calendar.badge.plus", tint: RemindlyStyle.warning) {
+                    statusLine(title: "Status", value: CalendarSyncService.statusText(for: calendarStatus), tint: calendarStatusAllowsSync ? RemindlyStyle.success : RemindlyStyle.warning)
+
+                    Text("Erinnerungen können als Termine erstellt, aktualisiert und beim Löschen wieder entfernt werden.")
+                        .font(.subheadline)
+                        .foregroundStyle(RemindlyStyle.mutedText)
+
+                    Button {
+                        requestCalendarAccess()
+                    } label: {
+                        Label("Kalenderzugriff erlauben", systemImage: "calendar.badge.plus")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(calendarStatusAllowsSync)
+                }
+
+                settingsCard(title: "Datenschutz", systemImage: "lock.shield", tint: RemindlyStyle.success) {
+                    noteLine("RemindlyAi verwendet keinen eigenen Server.", systemImage: "checkmark.shield")
+                    noteLine("Spracherkennung wird über iOS bereitgestellt.", systemImage: "waveform")
+                    noteLine("Bilder bleiben in dieser Version als lokale Dateien auf dem Gerät.", systemImage: "photo")
+                }
+
+                settingsCard(title: "Kategorien", systemImage: "tag", tint: RemindlyStyle.pink) {
+                    ForEach(categories, id: \.id) { category in
+                        categoryRow(category)
+                    }
+
+                    Button {
+                        categoryEditor = CategoryEditorDraft()
+                    } label: {
+                        Label("Kategorie hinzufügen", systemImage: "plus")
+                            .frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                }
+
+                settingsCard(title: "App", systemImage: "app.badge", tint: RemindlyStyle.cyan) {
+                    statusLine(title: "RemindlyAi", value: "Version 1.0", tint: RemindlyStyle.mutedText)
                 }
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 14)
+            .padding(.bottom, 32)
         }
-        .navigationTitle("Einstellungen")
+        .background(RemindlyStyle.backgroundGradient.ignoresSafeArea())
+        .tint(RemindlyStyle.accent)
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(.visible, for: .navigationBar)
+        .toolbarBackground(Color.black.opacity(0.36), for: .navigationBar)
         .task {
             seedDefaultCategoriesIfNeeded()
             await refreshNotificationStatus()
@@ -174,6 +139,112 @@ struct SettingsView: View {
         } message: {
             Text(errorMessage ?? "")
         }
+    }
+
+    private var settingsHeader: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Einstellungen")
+                .font(.system(size: 36, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+
+            Text("Berechtigungen, Sync und Kategorien")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(RemindlyStyle.mutedText)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 8)
+    }
+
+    private func settingsCard<Content: View>(
+        title: String,
+        systemImage: String,
+        tint: Color,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                Image(systemName: systemImage)
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 36, height: 36)
+                    .background(RemindlyStyle.iconFill(tint), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                Text(title)
+                    .font(.headline.weight(.bold))
+                    .foregroundStyle(.white)
+            }
+
+            content()
+        }
+        .padding(18)
+        .remindlyCard()
+    }
+
+    private func statusLine(title: String, value: String, tint: Color) -> some View {
+        HStack(spacing: 12) {
+            Text(title)
+                .foregroundStyle(RemindlyStyle.mutedText)
+
+            Spacer()
+
+            Text(value)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(tint)
+                .lineLimit(1)
+                .minimumScaleFactor(0.75)
+        }
+        .font(.subheadline)
+    }
+
+    private func noteLine(_ text: String, systemImage: String) -> some View {
+        Label(text, systemImage: systemImage)
+            .font(.subheadline)
+            .foregroundStyle(RemindlyStyle.mutedText)
+    }
+
+    private func categoryRow(_ category: MemoCategoryItem) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: category.systemImage)
+                .font(.headline.weight(.semibold))
+                .foregroundStyle(category.tint)
+                .frame(width: 34, height: 34)
+                .background(category.tint.opacity(0.14), in: Circle())
+
+            Text(category.displayName)
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(.white)
+
+            if category.isDefault {
+                Text("Standard")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(RemindlyStyle.mutedText)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 4)
+                    .background(RemindlyStyle.elevatedFill, in: Capsule())
+            }
+
+            Spacer()
+
+            Button {
+                categoryEditor = CategoryEditorDraft(category: category)
+            } label: {
+                Image(systemName: "pencil")
+                    .frame(width: 32, height: 32)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Kategorie bearbeiten")
+
+            Button(role: .destructive) {
+                deleteCategory(category)
+            } label: {
+                Image(systemName: "trash")
+                    .frame(width: 32, height: 32)
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Kategorie löschen")
+        }
+        .padding(10)
+        .background(Color.black.opacity(0.16), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     private var errorBinding: Binding<Bool> {
@@ -369,9 +440,16 @@ private struct CategoryEditorView: View {
                         }
                     }
                 }
+                .listRowBackground(RemindlyStyle.cardFill)
             }
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
+            .background(RemindlyStyle.backgroundGradient.ignoresSafeArea())
+            .tint(RemindlyStyle.accent)
             .navigationTitle(draft.categoryID == nil ? "Neue Kategorie" : "Kategorie bearbeiten")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.black.opacity(0.36), for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Abbrechen") {
