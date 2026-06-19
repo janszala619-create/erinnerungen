@@ -33,7 +33,7 @@ struct ReminderEntityQuery: EntityQuery {
 
 struct QuickCaptureIntent: AppIntent {
     static var title: LocalizedStringResource = "Schnell erfassen"
-    static var description = IntentDescription("fffnet MemoPing direkt zum Erfassen eines neuen Memos.")
+    static var description = IntentDescription("Öffnet RemindlyAi direkt zum Erfassen eines neuen Memos.")
     static var openAppWhenRun = true
 
     @MainActor
