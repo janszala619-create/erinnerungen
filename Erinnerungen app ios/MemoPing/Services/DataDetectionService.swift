@@ -1,5 +1,22 @@
 import Foundation
 
+private extension String {
+    var trimmed: String {
+        trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var phoneDedupKey: String {
+        filter { $0.isNumber || $0 == "+" }
+    }
+
+    var urlDedupKey: String {
+        lowercased()
+            .replacingOccurrences(of: "https://", with: "")
+            .replacingOccurrences(of: "http://", with: "")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    }
+}
+
 final class DataDetectionService {
     static let shared = DataDetectionService()
 
@@ -176,23 +193,6 @@ private extension DetectedInfo {
 
         dates = pairs.map(\.date)
         dateStrings = pairs.map(\.text).filter { !$0.isEmpty }
-    }
-}
-
-private extension String {
-    var trimmed: String {
-        trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    var phoneDedupKey: String {
-        filter { $0.isNumber || $0 == "+" }
-    }
-
-    var urlDedupKey: String {
-        lowercased()
-            .replacingOccurrences(of: "https://", with: "")
-            .replacingOccurrences(of: "http://", with: "")
-            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     }
 }
 
