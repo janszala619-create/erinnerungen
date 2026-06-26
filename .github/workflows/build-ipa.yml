@@ -3,33 +3,23 @@ name: Build IPA
 on:
   push:
     branches: [ main, master ]
-  workflow_dispatch:   # Manueller Start per Knopfdruck auf GitHub möglich
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-15   # Xcode 16 verfügbar
+    runs-on: macos-15
 
     steps:
-      # ── 1. Code auschecken ──────────────────────────────────────────────────
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      # ── 2. Xcode-Version pinnen ─────────────────────────────────────────────
       - name: Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+        run: sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
-      # ── 3. Xcode-Version zur Kontrolle ausgeben ─────────────────────────────
       - name: Xcode version
         run: xcodebuild -version
 
-      # ── 4. Build (unsigned) ─────────────────────────────────────────────────
-      #
-      #  CODE_SIGN_IDENTITY=""          → kein Zertifikat erforderlich
-      #  CODE_SIGNING_REQUIRED=NO       → Signing komplett überspringen
-      #  CODE_SIGNING_ALLOWED=NO        → sicherstellen dass nichts signiert wird
-      #  AD_HOC_CODE_SIGNING_ALLOWED=YES → erlaubt den Build ohne Team
-      #
-      - name: Build .app (unsigned)
+      - name: Build .app unsigned
         run: |
           xcodebuild \
             -project "Erinnerungen app ios/MemoPing.xcodeproj" \
@@ -44,10 +34,8 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             clean build
 
-      # ── 5. .app → .ipa verpacken ────────────────────────────────────────────
       - name: Package .ipa
         run: |
-          # Pfad zur .app in DerivedData finden
           APP_PATH=$(find "${{ github.workspace }}/DerivedData" \
             -name "MemoPing.app" \
             -path "*/Release-iphoneos/*" \
@@ -61,20 +49,17 @@ jobs:
             exit 1
           fi
 
-          # Payload-Struktur erstellen (Standard IPA-Format)
+          rm -rf "${{ github.workspace }}/ipa_staging"
           mkdir -p "${{ github.workspace }}/ipa_staging/Payload"
           cp -R "$APP_PATH" "${{ github.workspace }}/ipa_staging/Payload/"
 
-          # Zippen → umbenennen zu .ipa
           cd "${{ github.workspace }}/ipa_staging"
           zip -r "../MemoPing.ipa" Payload
 
-          echo "IPA erstellt: ${{ github.workspace }}/MemoPing.ipa"
-
-      # ── 6. IPA als Artifact hochladen ───────────────────────────────────────
       - name: Upload IPA artifact
         uses: actions/upload-artifact@v4
         with:
           name: MemoPing-${{ github.sha }}
           path: ${{ github.workspace }}/MemoPing.ipa
-          retention-days: 30   # IPA 30 Tage verfügbar
+          retention-days: 30
+          
