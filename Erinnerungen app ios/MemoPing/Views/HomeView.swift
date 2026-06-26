@@ -15,7 +15,7 @@ struct HomeView: View {
         ZStack(alignment: .bottom) {
             content
                 .safeAreaInset(edge: .bottom) {
-                    Color.clear.frame(height: 104)
+                    Color.clear.frame(height: 100)
                 }
 
             CaptureButton {
@@ -23,106 +23,287 @@ struct HomeView: View {
             }
             .padding(.bottom, 22)
         }
-        .navigationTitle("MemoPing")
-        .searchable(text: $viewModel.searchText, prompt: "Suchen")
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar { toolbarContent }
+        .searchable(text: $viewModel.searchText, prompt: "Memos durchsuchen")
         .background(Color(.systemGroupedBackground))
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                categoryFilterMenu
-            }
-        }
         .sheet(isPresented: $isCapturePresented) {
-            CaptureView {
-                isCapturePresented = false
-            }
+            CaptureView { isCapturePresented = false }
         }
         .alert("Hinweis", isPresented: errorBinding) {
-            Button("OK", role: .cancel) {
-                errorMessage = nil
-            }
+            Button("OK", role: .cancel) { errorMessage = nil }
         } message: {
             Text(errorMessage ?? "")
         }
     }
+
+    // MARK: - Toolbar
+
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            Text("MemoPing")
+                .font(.headline)
+        }
+        ToolbarItem(placement: .topBarTrailing) {
+            categoryFilterMenu
+        }
+    }
+
+    // MARK: - Content
 
     @ViewBuilder
     private var content: some View {
         let groups = viewModel.sectionGroups(from: items)
 
         if items.isEmpty {
-            ContentUnavailableView(
-                "Noch keine Memos",
-                systemImage: "sparkles",
-                description: Text("Tippe auf den großen Button, um deine erste Notiz oder Erinnerung zu erfassen.")
+            emptyState(
+                title: "Noch keine Memos",
+                subtitle: "Tippe auf den Button unten, um deine erste Notiz oder Erinnerung zu erfassen.",
+                systemImage: "sparkles"
             )
         } else if groups.isEmpty {
-            ContentUnavailableView(
-                "Keine Ergebnisse gefunden.",
-                systemImage: "magnifyingglass",
-                description: Text("Versuche einen anderen Suchbegriff oder entferne den Filter.")
+            emptyState(
+                title: "Keine Ergebnisse",
+                subtitle: "Versuche einen anderen Suchbegriff oder entferne den Filter.",
+                systemImage: "magnifyingglass"
             )
         } else {
-            List {
-                ForEach(groups) { group in
-                    Section(group.section.title) {
-                        ForEach(group.items) { item in
-                            NavigationLink {
-                                DetailView(item: item)
-                            } label: {
-                                MemoCardView(item: item)
-                            }
-                            .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                            .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                                Button {
-                                    toggleCompleted(item)
+            ScrollView {
+                // Fix A: Header-Card mit Tagesübersicht
+                summaryHeader(groups: groups)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 12)
+
+                // Fix A: Filter-Chips
+                categoryFilterChips
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+
+                // Memo-Liste
+                LazyVStack(spacing: 0, pinnedViews: .sectionHeaders) {
+                    ForEach(groups) { group in
+                        Section {
+                            ForEach(group.items) { item in
+                                NavigationLink {
+                                    DetailView(item: item)
                                 } label: {
-                                    Label(item.isCompleted ? "Offen" : "Erledigt", systemImage: item.isCompleted ? "circle" : "checkmark")
+                                    MemoCardView(item: item)
                                 }
-                                .tint(.green)
-                            }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                Button(role: .destructive) {
-                                    delete(item)
-                                } label: {
-                                    Label("Löschen", systemImage: "trash")
+                                .buttonStyle(.plain)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 4)
+                                .swipeActions(edge: .leading, allowsFullSwipe: true) {
+                                    Button {
+                                        toggleCompleted(item)
+                                    } label: {
+                                        Label(
+                                            item.isCompleted ? "Offen" : "Erledigt",
+                                            systemImage: item.isCompleted ? "circle" : "checkmark"
+                                        )
+                                    }
+                                    .tint(.green)
+                                }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        delete(item)
+                                    } label: {
+                                        Label("Löschen", systemImage: "trash")
+                                    }
                                 }
                             }
-                        }
-                        .onDelete { offsets in
-                            deleteItems(at: offsets, in: group.items)
+                        } header: {
+                            sectionHeader(group.section.title)
                         }
                     }
                 }
+                .padding(.top, 8)
+                .animation(.snappy(duration: 0.2), value: viewModel.searchText)
+                .animation(.snappy(duration: 0.2), value: viewModel.selectedCategory)
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .animation(.snappy(duration: 0.2), value: viewModel.searchText)
-            .animation(.snappy(duration: 0.2), value: viewModel.selectedCategory)
         }
     }
+
+    // MARK: - Summary Header (Fix A)
+
+    private func summaryHeader(groups: [MemoSectionGroup]) -> some View {
+        let openCount = groups.filter { $0.section != .completed }.flatMap(\.items).count
+        let doneCount = groups.first(where: { $0.section == .completed })?.items.count ?? 0
+        let highCount = groups.flatMap(\.items).filter { $0.priority == .high && !$0.isCompleted }.count
+
+        return VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(todayLabel)
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .textCase(.uppercase)
+                        .tracking(0.5)
+
+                    Text("Dein Überblick")
+                        .font(.title2.weight(.bold))
+                }
+                Spacer()
+            }
+
+            HStack(spacing: 10) {
+                statPill(count: openCount, label: "Offen", systemImage: "circle", tint: .accentColor)
+                statPill(count: doneCount, label: "Erledigt", systemImage: "checkmark.circle.fill", tint: .green)
+                if highCount > 0 {
+                    statPill(count: highCount, label: "Dringend", systemImage: "exclamationmark.circle.fill", tint: .red)
+                }
+            }
+        }
+        .padding(16)
+        .background(
+            Color(.secondarySystemGroupedBackground),
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .strokeBorder(Color.primary.opacity(0.06))
+        }
+    }
+
+    private var todayLabel: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "de_DE")
+        formatter.dateFormat = "EEEE, d. MMMM"
+        return formatter.string(from: Date())
+    }
+
+    private func statPill(count: Int, label: String, systemImage: String, tint: Color) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: systemImage)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(tint)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("\(count)")
+                    .font(.headline.monospacedDigit())
+                    .foregroundStyle(.primary)
+                Text(label)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(tint.opacity(0.1), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+    }
+
+    // MARK: - Category Filter Chips (Fix A)
+
+    private var categoryFilterChips: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                filterChip(label: "Alle", systemImage: "tray.2", isActive: viewModel.selectedCategory == nil) {
+                    viewModel.selectedCategory = nil
+                }
+
+                ForEach(MemoCategory.allCases) { category in
+                    filterChip(
+                        label: category.displayName,
+                        systemImage: category.systemImage,
+                        isActive: viewModel.selectedCategory == category,
+                        tint: category.tint
+                    ) {
+                        viewModel.selectedCategory = (viewModel.selectedCategory == category) ? nil : category
+                    }
+                }
+            }
+            .padding(.vertical, 2)
+        }
+    }
+
+    private func filterChip(
+        label: String,
+        systemImage: String,
+        isActive: Bool,
+        tint: Color = .accentColor,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Label(label, systemImage: systemImage)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(isActive ? .white : tint)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 7)
+                .background(
+                    isActive ? tint : tint.opacity(0.12),
+                    in: Capsule()
+                )
+        }
+        .buttonStyle(.plain)
+        .animation(.snappy(duration: 0.15), value: isActive)
+    }
+
+    // MARK: - Section Header
+
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.footnote.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .textCase(.uppercase)
+            .tracking(0.5)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 4)
+            .background(Color(.systemGroupedBackground))
+    }
+
+    // MARK: - Empty State
+
+    private func emptyState(title: String, subtitle: String, systemImage: String) -> some View {
+        VStack(spacing: 16) {
+            Spacer()
+            Image(systemName: systemImage)
+                .font(.system(size: 48, weight: .light))
+                .foregroundStyle(.tertiary)
+            Text(title)
+                .font(.title3.weight(.semibold))
+            Text(subtitle)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+            Spacer()
+        }
+    }
+
+    // MARK: - Category Filter Menu (Toolbar)
 
     private var categoryFilterMenu: some View {
         Menu {
             Button {
                 viewModel.selectedCategory = nil
             } label: {
-                Label("Alle Kategorien", systemImage: viewModel.selectedCategory == nil ? "checkmark" : "line.3.horizontal.decrease.circle")
+                Label(
+                    "Alle Kategorien",
+                    systemImage: viewModel.selectedCategory == nil ? "checkmark" : "tray.2"
+                )
             }
-
+            Divider()
             ForEach(MemoCategory.allCases) { category in
                 Button {
                     viewModel.selectedCategory = category
                 } label: {
-                    Label(category.displayName, systemImage: viewModel.selectedCategory == category ? "checkmark" : category.systemImage)
+                    Label(
+                        category.displayName,
+                        systemImage: viewModel.selectedCategory == category ? "checkmark" : category.systemImage
+                    )
                 }
             }
         } label: {
-            Label(viewModel.selectedCategory?.displayName ?? "Filter", systemImage: "line.3.horizontal.decrease.circle")
+            Image(systemName: viewModel.selectedCategory == nil
+                  ? "line.3.horizontal.decrease.circle"
+                  : "line.3.horizontal.decrease.circle.fill")
         }
         .accessibilityLabel("Kategorie filtern")
     }
+
+    // MARK: - Bindings & Actions
 
     private var errorBinding: Binding<Bool> {
         Binding(
@@ -131,12 +312,8 @@ struct HomeView: View {
         )
     }
 
-    private func deleteItems(at offsets: IndexSet, in sectionItems: [MemoItem]) {
-        offsets.map { sectionItems[$0] }.forEach(delete)
-    }
-
     private func toggleCompleted(_ item: MemoItem) {
-        let previousCompletionState = item.isCompleted
+        let previous = item.isCompleted
         item.isCompleted.toggle()
         item.updatedAt = Date()
 
@@ -149,7 +326,7 @@ struct HomeView: View {
                 }
                 try modelContext.save()
             } catch {
-                item.isCompleted = previousCompletionState
+                item.isCompleted = previous
                 item.updatedAt = Date()
                 errorMessage = error.localizedDescription
             }
@@ -161,7 +338,6 @@ struct HomeView: View {
             NotificationService.shared.cancelReminder(for: item)
             imageStorage.deleteImages(fileNames: item.imageFileNames)
             modelContext.delete(item)
-
             do {
                 try modelContext.save()
             } catch {

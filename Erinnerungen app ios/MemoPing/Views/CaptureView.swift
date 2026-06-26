@@ -1,3 +1,5 @@
+import AVFoundation
+import PhotosUI
 import SwiftUI
 
 struct CaptureView: View {
@@ -6,6 +8,8 @@ struct CaptureView: View {
 
     @StateObject private var viewModel = CaptureViewModel()
     @State private var previewViewModel: PreviewViewModel?
+    @State private var selectedPhotoItems: [PhotosPickerItem] = []
+    @State private var cameraSheet: CameraSheet?
 
     let onComplete: () -> Void
 
@@ -45,110 +49,260 @@ struct CaptureView: View {
                 viewModel.stopRecording()
             }
         }
+        .onChange(of: selectedPhotoItems) { _, newItems in
+            Task { await loadSelectedPhotos(newItems) }
+        }
         .onDisappear {
             previewViewModel?.discardTemporaryImages()
             viewModel.cancelRecording()
         }
+        .sheet(item: $cameraSheet) { _ in
+            CameraPickerView { image in
+                Task { await viewModel.addImage(image) }
+            }
+        }
+        .alert("Hinweis", isPresented: errorBinding) {
+            Button("OK", role: .cancel) { viewModel.errorMessage = nil }
+        } message: {
+            Text(viewModel.errorMessage ?? "")
+        }
     }
+
+    // MARK: - Capture Content
 
     private var captureContent: some View {
         ScrollView {
-            VStack(spacing: 18) {
-                GroupBox {
-                    TextEditor(text: $viewModel.inputText)
-                        .frame(minHeight: 150)
-                        .padding(10)
-                        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay {
-                            if viewModel.inputText.isEmpty {
-                                Text("Notiz oder Erinnerung eingeben")
-                                    .foregroundStyle(.secondary)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                                    .padding(.top, 18)
-                                    .padding(.leading, 16)
-                                    .allowsHitTesting(false)
-                            }
-                        }
-                } label: {
-                    Label("Text eingeben", systemImage: "keyboard")
-                        .font(.headline)
-                }
-
-                GroupBox {
-                    VStack(spacing: 14) {
-                        Button {
-                            viewModel.toggleRecording()
-                        } label: {
-                            HStack(spacing: 14) {
-                                ZStack {
-                                    Circle()
-                                        .fill(viewModel.isRecording ? Color.red : Color.accentColor)
-                                        .frame(width: 58, height: 58)
-
-                                    Image(systemName: viewModel.isRecording ? "stop.fill" : "mic.fill")
-                                        .font(.title2.weight(.semibold))
-                                        .foregroundStyle(.white)
-                                }
-
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(viewModel.speechButtonTitle)
-                                        .font(.headline)
-
-                                    Label(viewModel.speechStatusText, systemImage: viewModel.isRecording ? "waveform" : "mic")
-                                        .font(.subheadline)
-                                        .foregroundStyle(viewModel.isRecording ? .red : .secondary)
-                                }
-
-                                Spacer()
-                            }
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(viewModel.isPreparingSpeech)
-                        .accessibilityLabel(viewModel.isRecording ? "Aufnahme stoppen" : "Sprache aufnehmen")
-
-                        Text("Spracherkennung wird über iOS bereitgestellt. Deine gespeicherten Memos bleiben lokal auf dem Gerät.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                } label: {
-                    Label("Sprache aufnehmen", systemImage: "mic")
-                        .font(.headline)
-                }
-
-                if let emptyTextHint = viewModel.emptyTextHint {
-                    Label(emptyTextHint, systemImage: "info.circle")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-
-                Button {
-                    openPreview()
-                } label: {
-                    Label("Zur Vorschau", systemImage: "arrow.right")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .disabled(!viewModel.canContinue || viewModel.isProcessingImage)
+            VStack(spacing: 16) {
+                headerCard
+                textSection
+                imageSection
+                voiceSection
+                continueButton
             }
-            .padding()
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
         .background(Color(.systemGroupedBackground))
         .onChange(of: viewModel.inputText) { _, _ in
             viewModel.textDidChange()
         }
-        .alert("Hinweis", isPresented: errorBinding) {
-            Button("OK", role: .cancel) {
-                viewModel.errorMessage = nil
-            }
-        } message: {
-            Text(viewModel.errorMessage ?? "")
-        }
     }
+
+    // MARK: - Header
+
+    private var headerCard: some View {
+        HStack(spacing: 14) {
+            Image(systemName: "sparkles")
+                .font(.title2.weight(.semibold))
+                .foregroundStyle(.white)
+                .frame(width: 44, height: 44)
+                .background(Color.accentColor.gradient, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Schnell erfassen")
+                    .font(.headline)
+                Text("Text, Sprache oder Bild")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+        }
+        .padding(16)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    // MARK: - Text Section
+
+    private var textSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label("Text eingeben", systemImage: "keyboard")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            TextEditor(text: $viewModel.inputText)
+                .frame(minHeight: 120)
+                .padding(12)
+                .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                .overlay {
+                    if viewModel.inputText.isEmpty {
+                        Text("Notiz oder Erinnerung eingeben …")
+                            .foregroundStyle(.tertiary)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                            .padding(.top, 20)
+                            .padding(.leading, 16)
+                            .allowsHitTesting(false)
+                    }
+                }
+        }
+        .padding(16)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    // MARK: - Image Section (Fix B)
+
+    private var imageSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Bild hinzufügen", systemImage: "photo.on.rectangle")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            // Vorschau bereits hinzugefügter Bilder
+            if !viewModel.images.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(Array(viewModel.images.enumerated()), id: \.offset) { index, image in
+                            ZStack(alignment: .topTrailing) {
+                                Image(uiImage: image)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 90, height: 90)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                                Button {
+                                    viewModel.images.remove(at: index)
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.title3)
+                                        .symbolRenderingMode(.palette)
+                                        .foregroundStyle(.white, Color.black.opacity(0.6))
+                                }
+                                .buttonStyle(.plain)
+                                .padding(4)
+                                .accessibilityLabel("Bild \(index + 1) entfernen")
+                            }
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
+            }
+
+            // Buttons: Kamera + Galerie
+            HStack(spacing: 10) {
+                // Kamera
+                Button {
+                    Task { await openCamera() }
+                } label: {
+                    Label("Foto aufnehmen", systemImage: "camera")
+                        .font(.subheadline.weight(.medium))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(.bordered)
+                .disabled(viewModel.images.count >= 3)
+
+                // Galerie
+                PhotosPicker(
+                    selection: $selectedPhotoItems,
+                    maxSelectionCount: max(0, 3 - viewModel.images.count),
+                    matching: .images
+                ) {
+                    Label("Aus Galerie", systemImage: "photo")
+                        .font(.subheadline.weight(.medium))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
+                .buttonStyle(.bordered)
+                .disabled(viewModel.images.count >= 3)
+            }
+
+            // Statuszeile
+            if viewModel.isProcessingImage {
+                HStack(spacing: 8) {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                    Text("Bild wird verarbeitet …")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            } else if viewModel.images.count >= 3 {
+                Label("Maximal 3 Bilder pro Memo", systemImage: "info.circle")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            } else {
+                Label("Foto oder Screenshot direkt einfügbar", systemImage: "photo.badge.plus")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(16)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    // MARK: - Voice Section
+
+    private var voiceSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Label("Sprache aufnehmen", systemImage: "mic")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+
+            Button {
+                viewModel.toggleRecording()
+            } label: {
+                HStack(spacing: 14) {
+                    ZStack {
+                        Circle()
+                            .fill(viewModel.isRecording ? Color.red : Color.accentColor)
+                            .frame(width: 52, height: 52)
+
+                        Image(systemName: viewModel.isRecording ? "stop.fill" : "mic.fill")
+                            .font(.title3.weight(.semibold))
+                            .foregroundStyle(.white)
+                    }
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(viewModel.speechButtonTitle)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+
+                        Label(viewModel.speechStatusText, systemImage: viewModel.isRecording ? "waveform" : "mic")
+                            .font(.subheadline)
+                            .foregroundStyle(viewModel.isRecording ? .red : .secondary)
+                    }
+
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(viewModel.isPreparingSpeech)
+            .accessibilityLabel(viewModel.isRecording ? "Aufnahme stoppen" : "Sprache aufnehmen")
+
+            Text("Spracherkennung via iOS. Memos bleiben lokal auf dem Gerät.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .padding(16)
+        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    // MARK: - Continue Button
+
+    private var continueButton: some View {
+        VStack(spacing: 10) {
+            if let hint = viewModel.emptyTextHint {
+                Label(hint, systemImage: "info.circle")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
+            Button {
+                openPreview()
+            } label: {
+                Label("Zur Vorschau", systemImage: "arrow.right")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(!viewModel.canContinue || viewModel.isProcessingImage)
+        }
+        .padding(.bottom, 8)
+    }
+
+    // MARK: - Helpers
 
     private var errorBinding: Binding<Bool> {
         Binding(
@@ -162,8 +316,61 @@ struct CaptureView: View {
             viewModel.errorMessage = "Bitte erfasse Text oder füge ein Bild hinzu."
             return
         }
-
         viewModel.stopRecording()
         previewViewModel = PreviewViewModel(draft: viewModel.makeDraft())
+    }
+
+    private func openCamera() async {
+        guard viewModel.images.count < 3 else {
+            viewModel.errorMessage = "Du kannst maximal 3 Bilder pro Memo hinzufügen."
+            return
+        }
+
+        guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
+            viewModel.errorMessage = "Kamera ist auf diesem Gerät nicht verfügbar."
+            return
+        }
+
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        if status == .notDetermined {
+            let granted = await AVCaptureDevice.requestAccess(for: .video)
+            guard granted else {
+                viewModel.errorMessage = "Die Kameraberechtigung wurde nicht erteilt."
+                return
+            }
+        } else if status == .denied || status == .restricted {
+            viewModel.errorMessage = "Die Kameraberechtigung wurde nicht erteilt. Bitte in den Einstellungen aktivieren."
+            return
+        }
+
+        cameraSheet = CameraSheet()
+    }
+
+    private func loadSelectedPhotos(_ items: [PhotosPickerItem]) async {
+        guard !items.isEmpty else { return }
+
+        let slotsLeft = 3 - viewModel.images.count
+        guard slotsLeft > 0 else {
+            viewModel.errorMessage = "Du kannst maximal 3 Bilder pro Memo hinzufügen."
+            selectedPhotoItems = []
+            return
+        }
+
+        for item in items.prefix(slotsLeft) {
+            do {
+                if let data = try await item.loadTransferable(type: Data.self),
+                   let image = UIImage(data: data) {
+                    await viewModel.addImage(image)
+                }
+            } catch {
+                viewModel.errorMessage = "Bild konnte nicht geladen werden."
+            }
+        }
+
+        if items.count > slotsLeft {
+            viewModel.errorMessage = "Es wurden nur \(slotsLeft) Bilder übernommen. Maximal 3 pro Memo."
+        }
+
+        selectedPhotoItems = []
     }
 }
